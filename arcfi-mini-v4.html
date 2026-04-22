@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ArcFi Mini</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── THEME VARS ── */
+[data-theme="dark"]{
+  --bg:#08090C;--bg1:#0D0F14;--bg2:#12151C;--bg3:#181C26;
+  --line:#FFFFFF0D;--line2:#FFFFFF14;--line3:#FFFFFF22;
+  --txt:#F2F4F8;--txt2:#8B93A5;--txt3:#4A5260;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#F5F6FA;--bg1:#FFFFFF;--bg2:#F0F2F7;--bg3:#E8EBF4;
+  --line:#00000008;--line2:#00000010;--line3:#00000018;
+  --txt:#111318;--txt2:#4A5268;--txt3:#8B93A5;
+  --shadow:0 4px 24px rgba(0,0,0,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;transition:background-color .2s,border-color .2s,color .2s;}
+:root{--arc:#3B82F6;--green:#22C55E;--gold:#F59E0B;--red:#EF4444;--r:14px;--rs:9px;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Geist',sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5;}
+.shell{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line2);background:var(--bg);z-index:20;flex-shrink:0;}
+.logo{font-size:1rem;font-weight:700;letter-spacing:-.03em;color:var(--txt);}
+.logo span{color:var(--arc);}
+.net-pill{font-family:'Geist Mono',monospace;font-size:.56rem;letter-spacing:.06em;color:var(--txt3);background:var(--bg3);border:1px solid var(--line2);border-radius:4px;padding:2px 6px;text-transform:uppercase;}
+.topbar-r{display:flex;align-items:center;gap:6px;}
+.w-topbtn{display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--line2);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;font-family:'Geist',sans-serif;font-size:.73rem;font-weight:500;transition:all .15s;}
+.w-topbtn:hover{border-color:var(--arc);color:var(--arc);}
+.w-topbtn.on{border-color:rgba(34,197,94,.3);color:var(--green);}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--txt3);flex-shrink:0;}
+.wdot.live{background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+.icon-btn{width:34px;height:34px;border:1px solid var(--line2);border-radius:var(--rs);background:transparent;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.icon-btn:hover{border-color:var(--line3);color:var(--txt);}
+.icon-btn svg{width:16px;height:16px;}
+
+/* THEME TOGGLE - bottom corner */
+.theme-toggle{position:fixed;bottom:20px;right:16px;z-index:100;width:38px;height:38px;border-radius:50%;background:var(--bg1);border:1px solid var(--line2);box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;}
+.theme-toggle:hover{transform:scale(1.1);}
+
+/* SCROLL */
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll-area::-webkit-scrollbar{display:none;}
+
+/* PAGE */
+.page{display:none;padding:16px 15px 80px;animation:fu .2s ease;}
+.page.active{display:block;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* OVERLAY + SIDEBAR */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.sidebar{position:absolute;right:0;top:0;bottom:0;width:252px;background:var(--bg1);border-left:1px solid var(--line2);z-index:50;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.sidebar.open{transform:translateX(0);}
+.sb-hd{padding:15px 15px 11px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.sb-hd-t{font-size:.65rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;}
+.sb-close{width:26px;height:26px;border:none;background:transparent;color:var(--txt3);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sb-close svg{width:13px;height:13px;}
+.sb-body{flex:1;overflow-y:auto;padding:5px 0;}
+.sb-body::-webkit-scrollbar{display:none;}
+.s-lbl{font-size:.58rem;font-weight:600;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;padding:9px 15px 3px;}
+.s-it{display:flex;align-items:center;padding:10px 15px;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;color:var(--txt2);font-family:'Geist',sans-serif;font-size:.84rem;font-weight:500;gap:9px;transition:background .1s;}
+.s-it:hover{background:var(--bg2);color:var(--txt);}
+.s-it.active{color:var(--arc);}
+.s-dot{width:4px;height:4px;border-radius:50%;background:var(--line3);flex-shrink:0;}
+.s-it.active .s-dot{background:var(--arc);}
+.s-ext{margin-left:auto;font-size:.58rem;color:var(--txt3);}
+.s-div{height:1px;background:var(--line);margin:4px 15px;}
+
+/* MODAL */
+.modal-wrap{position:absolute;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s;}
+.modal-wrap.open{pointer-events:all;opacity:1;}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.65);}
+.modal{position:relative;width:100%;max-width:480px;background:var(--bg1);border:1px solid var(--line2);border-radius:20px 20px 0 0;padding:18px 15px 32px;animation:sUp .22s ease;max-height:88vh;overflow-y:auto;}
+@keyframes sUp{from{transform:translateY(36px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-handle{width:34px;height:3px;background:var(--line3);border-radius:2px;margin:0 auto 14px;}
+.modal-t{font-size:.92rem;font-weight:700;margin-bottom:3px;}
+.modal-s{font-size:.73rem;color:var(--txt3);margin-bottom:14px;}
+
+/* WALLET LIST */
+.w-it{display:flex;align-items:center;gap:11px;padding:12px 10px;border-radius:var(--rs);cursor:pointer;border:1px solid transparent;transition:background .12s;}
+.w-it:hover{background:var(--bg2);}
+.w-it.on{background:var(--bg2);border-color:rgba(34,197,94,.2);}
+.w-logo{width:40px;height:40px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;font-family:'Geist Mono',monospace;flex-shrink:0;border:1px solid var(--line2);}
+.w-nm{font-size:.85rem;font-weight:600;color:var(--txt);}
+.w-st{font-size:.66rem;color:var(--txt3);margin-top:2px;}
+.w-badge{font-size:.58rem;font-family:'Geist Mono',monospace;border-radius:4px;padding:2px 6px;border:1px solid var(--line2);background:var(--bg3);color:var(--txt3);}
+.w-badge.det{color:var(--green);border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.05);}
+.w-badge.con{color:var(--arc);border-color:rgba(59,130,246,.2);background:rgba(59,130,246,.05);}
+
+/* HERO */
+.hero{text-align:center;padding:20px 0 16px;}
+.h-lbl{font-size:.63rem;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+.h-bal{font-size:2.7rem;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--txt);}
+.h-usd{font-size:.78rem;color:var(--txt3);margin-top:4px;}
+.h-addr{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:5px 11px;border:1px solid var(--line2);border-radius:20px;font-family:'Geist Mono',monospace;font-size:.63rem;color:var(--txt2);cursor:pointer;transition:border-color .15s;}
+.h-addr:hover{border-color:var(--line3);}
+
+/* ACTION ROW */
+.act-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0;}
+.act-btn{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r);padding:14px;cursor:pointer;transition:all .15s;text-align:center;}
+.act-btn:hover{border-color:var(--line3);background:var(--bg3);}
+.act-icon{width:32px;height:32px;border-radius:9px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;}
+.act-icon svg{width:16px;height:16px;}
+.act-lbl{font-size:.75rem;font-weight:600;color:var(--txt2);}
+
+/* ASSET */
+.asset{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);}
+.asset:last-child{border-bottom:none;}
+.a-logo{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;font-family:'Geist Mono',monospace;border:1px solid var(--line2);flex-shrink:0;}
+.a-name{font-size:.84rem;font-weight:600;color:var(--txt);}
+.a-chain{font-size:.62rem;color:var(--txt3);}
+.a-bal{font-size:.86rem;font-weight:600;font-family:'Geist Mono',monospace;color:var(--txt);}
+.a-usd{font-size:.62rem;color:var(--txt3);}
+.a-chg{font-size:.6rem;font-weight:600;}
+.a-chg.up{color:var(--green);}
+.a-chg.dn{color:var(--red);}
+
+/* SECTION */
+.sec{margin-bottom:16px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.sec-t{font-size:.63rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;}
+.sec-lnk{font-size:.68rem;color:var(--arc);cursor:pointer;background:none;border:none;font-family:'Geist',sans-serif;}
+
+/* CARD */
+.card{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);margin-bottom:11px;}
+.cb{padding:15px;}
+
+/* FORM */
+.fg{margin-bottom:12px;}
+.fl{font-size:.61rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px;}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--rs);padding:11px 12px;color:var(--txt);font-family:'Geist',sans-serif;font-size:.87rem;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:var(--arc);}
+.fi::placeholder{color:var(--txt3);}
+.fi-row{display:flex;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--rs);overflow:hidden;transition:border-color .15s;}
+.fi-row:focus-within{border-color:var(--arc);}
+.fi-row input{flex:1;background:transparent;border:none;padding:11px 12px;color:var(--txt);font-family:'Geist',sans-serif;font-size:.87rem;outline:none;min-width:0;}
+.fi-row input::placeholder{color:var(--txt3);}
+.fi-tag{padding:0 11px;display:flex;align-items:center;font-family:'Geist Mono',monospace;font-size:.66rem;color:var(--txt3);border-left:1px solid var(--line2);white-space:nowrap;}
+.fi-max{padding:0 10px;display:flex;align-items:center;font-size:.66rem;font-weight:600;color:var(--arc);cursor:pointer;border-left:1px solid var(--line2);}
+.fsel{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--rs);padding:11px 12px;color:var(--txt);font-family:'Geist',sans-serif;font-size:.87rem;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5260' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
+.fsel option{background:var(--bg2);}
+
+/* PRICE ROW */
+.price-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;}
+.pr-left{display:flex;align-items:center;gap:8px;}
+.pr-sym{font-family:'Geist Mono',monospace;font-size:.72rem;font-weight:600;color:var(--txt);}
+.pr-name{font-size:.62rem;color:var(--txt3);}
+.pr-price{font-family:'Geist Mono',monospace;font-size:.8rem;font-weight:600;color:var(--txt);}
+.pr-chg{font-size:.62rem;font-weight:600;}
+
+/* RATE BOX */
+.rbox{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;}
+.rr{display:flex;justify-content:space-between;font-size:.72rem;padding:3px 0;}
+.rl{color:var(--txt3);}
+.rv{font-weight:500;font-family:'Geist Mono',monospace;font-size:.68rem;color:var(--txt);}
+
+/* BTN */
+.btn{width:100%;padding:12px;background:var(--arc);color:#fff;border:none;border-radius:var(--rs);font-family:'Geist',sans-serif;font-size:.86rem;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.01em;}
+.btn:hover:not(:disabled){filter:brightness(1.1);}
+.btn:active:not(:disabled){transform:scale(.99);}
+.btn:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+.btn.grn{background:var(--green);color:#071a0e;}
+.btn.red{background:var(--red);}
+.btn.out{background:transparent;border:1px solid var(--line2);color:var(--txt2);}
+.btn.out:hover{border-color:var(--line3);color:var(--txt);}
+.btn.sm{width:auto;padding:8px 14px;font-size:.76rem;}
+
+/* PAGE HDR */
+.phdr{display:flex;align-items:center;gap:9px;padding-bottom:14px;}
+.bk{width:30px;height:30px;border:1px solid var(--line2);border-radius:var(--rs);background:transparent;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bk svg{width:13px;height:13px;}
+.pt{font-size:.95rem;font-weight:700;letter-spacing:-.02em;color:var(--txt);}
+
+/* INFO ROWS */
+.ir{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:.78rem;}
+.ir:last-child{border-bottom:none;}
+.il{color:var(--txt3);}
+.iv{font-weight:500;color:var(--txt);}
+.iv.g{color:var(--green);}
+.iv.gold{color:var(--gold);}
+.iv.a{color:var(--arc);}
+.iv.m{font-family:'Geist Mono',monospace;font-size:.7rem;}
+
+/* TX */
+.tx{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+.tx:last-child{border-bottom:none;}
+.tx-ico{width:32px;height:32px;border-radius:9px;background:var(--bg3);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tx-ico svg{width:13px;height:13px;color:var(--txt3);}
+.tx-t{font-size:.8rem;font-weight:600;color:var(--txt);}
+.tx-d{font-size:.61rem;color:var(--txt3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-a{font-size:.78rem;font-weight:600;font-family:'Geist Mono',monospace;}
+.tx-a.neg{color:var(--red);}
+.tx-a.pos{color:var(--green);}
+.tx-ti{font-size:.59rem;color:var(--txt3);margin-top:1px;}
+
+/* POINTS */
+.pts-hero{text-align:center;padding:16px 0 12px;}
+.pts-n{font-size:2.6rem;font-weight:700;letter-spacing:-.04em;color:var(--gold);}
+.pts-l{font-size:.68rem;color:var(--txt3);margin-top:3px;}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);}
+.pi:last-child{border-bottom:none;}
+.pi-a{font-size:.8rem;font-weight:500;color:var(--txt);}
+.pi-p{font-family:'Geist Mono',monospace;font-size:.72rem;font-weight:600;color:var(--gold);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);border-radius:4px;padding:2px 7px;}
+
+/* STREAK */
+.sk-row{display:flex;gap:4px;margin:10px 0;}
+.sk-d{flex:1;height:6px;border-radius:3px;background:var(--bg3);border:1px solid var(--line2);transition:all .3s;}
+.sk-d.done{background:var(--gold);border-color:var(--gold);}
+.sk-d.today{background:var(--arc);border-color:var(--arc);}
+
+/* PROG */
+.prog-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;}
+.prog-fill{height:100%;background:var(--arc);border-radius:2px;transition:width .5s;}
+
+/* ABOUT */
+.about-box{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:13px;}
+.ab-t{font-size:.76rem;font-weight:700;margin-bottom:6px;color:var(--txt);}
+.ab-p{font-size:.74rem;color:var(--txt3);line-height:1.7;}
+.ab-links{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+.ab-lnk{font-size:.61rem;font-family:'Geist Mono',monospace;color:var(--arc);text-decoration:none;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:3px 7px;transition:border-color .15s;}
+
+/* SWAP ARROW */
+.sw-arr{text-align:center;margin:3px 0;color:var(--txt3);font-size:1rem;}
+
+/* APPROVE BANNER */
+.apv-banner{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:var(--rs);padding:10px 12px;margin-bottom:11px;font-size:.7rem;color:var(--arc);line-height:1.6;}
+
+/* CHAIN TAG */
+.ctag{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line2);border-radius:5px;padding:3px 7px;font-size:.63rem;font-family:'Geist Mono',monospace;color:var(--txt3);}
+.cdot{width:5px;height:5px;border-radius:50%;}
+
+/* CONN SCREEN */
+.cs{padding:40px 14px;text-align:center;}
+.cs-t{font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--txt);}
+.cs-p{font-size:.8rem;color:var(--txt3);line-height:1.6;margin-bottom:20px;}
+
+/* UTIL */
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}
+.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.empty{text-align:center;padding:20px 0;font-size:.78rem;color:var(--txt3);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg1);border:1px solid var(--line2);border-radius:var(--rs);padding:9px 16px;font-size:.74rem;font-weight:500;z-index:300;opacity:0;transition:all .25s;white-space:nowrap;max-width:92vw;pointer-events:none;text-align:center;box-shadow:var(--shadow);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.s{border-color:rgba(34,197,94,.3);color:var(--green);}
+#toast.e{border-color:rgba(239,68,68,.3);color:var(--red);}
+#toast.i{border-color:rgba(59,130,246,.3);color:var(--arc);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:7px;">
+    <span class="logo">Arc<span>Fi</span></span>
+    <span class="net-pill">Testnet</span>
+  </div>
+  <div class="topbar-r">
+    <button class="w-topbtn" id="wtb" onclick="openWM()">
+      <div class="wdot" id="wdot"></div>
+      <span id="wtxt">Connect</span>
+    </button>
+    <button class="icon-btn" onclick="openSB()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- SCROLL -->
+<div class="scroll-area" id="sa">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div id="hm-dis">
+      <div class="cs">
+        <div class="cs-t">ArcFi Mini</div>
+        <p class="cs-p">Real DeFi on Arc Testnet.<br>Connect wallet to get started.</p>
+        <button class="btn" style="max-width:180px;margin:0 auto 12px;display:block;" onclick="openWM()">Connect Wallet</button>
+      </div>
+      <div class="about-box">
+        <div class="ab-t">About ArcFi Mini</div>
+        <div class="ab-p">A fully functional DeFi dashboard on Arc Testnet powered by Circle USDC. Real wallet transactions — send, swap, stake, bridge. All activity persists in your browser even after disconnect. Built to explore Arc's ecosystem.</div>
+        <div class="ab-links">
+          <a class="ab-lnk" href="https://www.arc.network/" target="_blank">arc.network</a>
+          <a class="ab-lnk" href="https://docs.arc.network/arc/concepts/welcome-to-arc" target="_blank">docs</a>
+          <a class="ab-lnk" href="https://testnet.arcscan.app/" target="_blank">explorer</a>
+          <a class="ab-lnk" href="https://faucet.circle.com/" target="_blank">faucet</a>
+          <a class="ab-lnk" href="https://developers.circle.com/" target="_blank">circle</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="hm-con" style="display:none;">
+      <div class="hero">
+        <div class="h-lbl">Portfolio Value</div>
+        <div class="h-bal" id="h-bal">$0.00</div>
+        <div class="h-usd" id="h-usd">0.00 USDC · Arc Testnet</div>
+        <div class="h-addr" onclick="copyAddr()">
+          <div class="wdot live"></div>
+          <span id="h-addr">—</span>
+        </div>
+      </div>
+
+      <div class="act-row">
+        <div class="act-btn" onclick="nav('send')">
+          <div class="act-icon" style="background:rgba(59,130,246,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
+          <div class="act-lbl">Send</div>
+        </div>
+        <div class="act-btn" onclick="nav('receive')">
+          <div class="act-icon" style="background:rgba(34,197,94,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+          <div class="act-lbl">Receive</div>
+        </div>
+      </div>
+
+      <!-- PRICE TICKER -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-t">Market Prices</span><span class="sec-t" id="price-upd" style="font-size:.56rem;">loading...</span></div>
+        <div id="price-list"></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-t">Assets</span></div>
+        <div>
+          <div class="asset"><div class="a-logo" style="color:#2775CA;">USDC</div><div style="flex:1;"><div class="a-name">USDC</div><div class="a-chain">Arc Testnet · Circle</div></div><div style="text-align:right;"><div class="a-bal" id="a-usdc">0.00</div><div class="a-usd" id="a-usdc-u">≈ $0.00</div></div></div>
+          <div class="asset"><div class="a-logo" style="color:#627EEA;">ETH</div><div style="flex:1;"><div class="a-name">ETH</div><div class="a-chain">Arc Testnet</div></div><div style="text-align:right;"><div class="a-bal" id="a-eth">0.0000</div><div class="a-usd" id="a-eth-u">≈ $0.00</div></div></div>
+          <div class="asset"><div class="a-logo" style="color:#3B82F6;">ARC</div><div style="flex:1;"><div class="a-name">ARC Token</div><div class="a-chain">Arc Testnet</div></div><div style="text-align:right;"><div class="a-bal" id="a-arc">0.00</div><div class="a-usd" id="a-arc-u">≈ $0.00</div></div></div>
+          <div class="asset"><div class="a-logo" style="color:#22C55E;">tUSDC</div><div style="flex:1;"><div class="a-name">tUSDC</div><div class="a-chain">Staked · ArcFi</div></div><div style="text-align:right;"><div class="a-bal" id="a-tusdc">0.00</div><div class="a-usd" style="color:var(--green);font-size:.62rem;" id="a-rew">+0.00 reward</div></div></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-t">Recent Activity</span><button class="sec-lnk" onclick="nav('history')">All →</button></div>
+        <div class="card"><div class="cb" id="h-recent"><div class="empty">No activity yet</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEND -->
+  <div class="page" id="page-send">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Send USDC</span></div>
+    <div class="apv-banner">Transaction will require wallet approval. Signed transaction is saved to history.</div>
+    <div class="fg"><label class="fl">Recipient Address</label><input class="fi" id="snd-addr" type="text" placeholder="0x..."></div>
+    <div class="fg"><label class="fl">Amount (USDC)</label>
+      <div class="fi-row"><input type="number" id="snd-amt" placeholder="0.00" oninput="sndPrev()" min="0" step="0.01"><span class="fi-max" onclick="setMax('snd-amt')">Max</span><span class="fi-tag">USDC</span></div>
+    </div>
+    <div class="rbox" id="snd-prev" style="display:none;">
+      <div class="rr"><span class="rl">Amount</span><span class="rv" id="sp-a">—</span></div>
+      <div class="rr"><span class="rl">Network</span><span class="rv">Arc Testnet</span></div>
+      <div class="rr"><span class="rl">Gas Fee</span><span class="rv">~0.001 ARC</span></div>
+      <div class="rr"><span class="rl">To</span><span class="rv" id="sp-t" style="font-size:.63rem;">—</span></div>
+    </div>
+    <button class="btn" onclick="doSend()">Send — Confirm in Wallet</button>
+  </div>
+
+  <!-- RECEIVE -->
+  <div class="page" id="page-receive">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Receive</span></div>
+    <div style="text-align:center;padding:14px 0;">
+      <div style="font-size:.63rem;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;">Your Address</div>
+      <div id="rcv-addr" style="font-family:'Geist Mono',monospace;font-size:.68rem;color:var(--txt2);background:var(--bg2);border:1px solid var(--line2);border-radius:var(--rs);padding:13px;word-break:break-all;text-align:left;margin-bottom:12px;">—</div>
+      <button class="btn" onclick="copyAddr()">Copy Address</button>
+    </div>
+    <div class="rbox mt8">
+      <div class="rr"><span class="rl">Network</span><span class="rv">Arc Testnet</span></div>
+      <div class="rr"><span class="rl">Chain ID</span><span class="rv">1322</span></div>
+      <div class="rr"><span class="rl">Symbol</span><span class="rv">ARC</span></div>
+      <div class="rr"><span class="rl">USDC Contract</span><span class="rv" style="font-size:.6rem;">0x1c7D...7238</span></div>
+    </div>
+  </div>
+
+  <!-- SWAP -->
+  <div class="page" id="page-swap">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Swap</span></div>
+    <div class="apv-banner">2-step: Approve token → Confirm swap. Both require wallet signature.</div>
+    <div class="fg"><label class="fl">From Token</label>
+      <select class="fsel" id="sw-from" onchange="calcSwap()">
+        <option value="USDC">USDC</option>
+        <option value="ETH">ETH</option>
+        <option value="ARC">ARC</option>
+        <option value="USDT">USDT</option>
+        <option value="DAI">DAI</option>
+        <option value="WBTC">WBTC</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Amount</label>
+      <div class="fi-row"><input type="number" id="sw-in" placeholder="0.00" oninput="calcSwap()" min="0" step="any"><span class="fi-max" onclick="swapMax()">Max</span><span class="fi-tag" id="sw-in-tag">USDC</span></div>
+    </div>
+    <div class="sw-arr">↓</div>
+    <div class="fg"><label class="fl">To Token</label>
+      <select class="fsel" id="sw-to" onchange="calcSwap()">
+        <option value="ETH">ETH</option>
+        <option value="USDC">USDC</option>
+        <option value="ARC">ARC</option>
+        <option value="USDT">USDT</option>
+        <option value="DAI">DAI</option>
+        <option value="WBTC">WBTC</option>
+        <option value="BNB">BNB</option>
+        <option value="SOL">SOL</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">You Receive (est.)</label>
+      <div class="fi-row" style="opacity:.65;pointer-events:none;"><input type="number" id="sw-out" placeholder="0.00" readonly><span class="fi-tag" id="sw-out-tag">ETH</span></div>
+    </div>
+    <div class="rbox">
+      <div class="rr"><span class="rl">Rate</span><span class="rv" id="sw-rate">—</span></div>
+      <div class="rr"><span class="rl">Price Impact</span><span class="rv">~0.1%</span></div>
+      <div class="rr"><span class="rl">Points Earned</span><span class="rv" style="color:var(--gold);">+0.3 per swap</span></div>
+    </div>
+    <button class="btn" id="sw-btn" onclick="doSwap()">Step 1: Approve Token</button>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="page" id="page-bridge">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Bridge</span></div>
+    <div class="apv-banner">Wallet will switch to source network and prompt approval for bridge transaction.</div>
+    <div class="fg"><label class="fl">From Network</label>
+      <select class="fsel" id="br-from" onchange="updateBridge()">
+        <option value="sepolia">Ethereum Sepolia</option>
+        <option value="base-sepolia">Base Sepolia</option>
+        <option value="op-sepolia">Optimism Sepolia</option>
+        <option value="arb-sepolia">Arbitrum Sepolia</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:7px;margin:5px 0;">
+      <div class="ctag"><div class="cdot" id="br-fdot" style="background:#627EEA;"></div><span id="br-flbl">Ethereum Sepolia</span></div>
+      <div style="flex:1;height:1px;background:var(--line2);"></div>
+      <span style="font-size:.8rem;color:var(--txt3);">→</span>
+      <div style="flex:1;height:1px;background:var(--line2);"></div>
+      <div class="ctag"><div class="cdot" style="background:#3B82F6;"></div><span>Arc Testnet</span></div>
+    </div>
+    <div class="fg"><label class="fl">Token</label>
+      <select class="fsel" id="br-token" onchange="updateBridge()"><option>USDC</option><option>ETH</option><option>USDT</option><option>DAI</option></select>
+    </div>
+    <div class="fg"><label class="fl">Amount</label>
+      <div class="fi-row"><input type="number" id="br-amt" placeholder="0.00" min="0" step="any"><span class="fi-max" onclick="setMax('br-amt')">Max</span><span class="fi-tag" id="br-ttag">USDC</span></div>
+    </div>
+    <div class="rbox">
+      <div class="rr"><span class="rl">From</span><span class="rv" id="br-fr">Ethereum Sepolia</span></div>
+      <div class="rr"><span class="rl">To</span><span class="rv">Arc Testnet</span></div>
+      <div class="rr"><span class="rl">Protocol</span><span class="rv">Circle CCTP</span></div>
+      <div class="rr"><span class="rl">Est. Time</span><span class="rv">~2 min</span></div>
+      <div class="rr"><span class="rl">Points Earned</span><span class="rv" style="color:var(--gold);">+0.5 per bridge</span></div>
+    </div>
+    <button class="btn" onclick="doBridge()">Bridge — Confirm in Wallet</button>
+    <div class="rbox mt8">
+      <div style="font-size:.6rem;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;">Testnet Faucets</div>
+      <div class="rr"><span class="rl">Sepolia ETH</span><span class="rv"><a href="https://sepoliafaucet.com" target="_blank" style="color:var(--arc);text-decoration:none;">sepoliafaucet.com ↗</a></span></div>
+      <div class="rr"><span class="rl">Base Sepolia</span><span class="rv"><a href="https://faucet.quicknode.com/base/sepolia" target="_blank" style="color:var(--arc);text-decoration:none;">quicknode ↗</a></span></div>
+      <div class="rr"><span class="rl">USDC</span><span class="rv"><a href="https://faucet.circle.com" target="_blank" style="color:var(--arc);text-decoration:none;">faucet.circle.com ↗</a></span></div>
+    </div>
+  </div>
+
+  <!-- STAKING -->
+  <div class="page" id="page-staking">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Staking</span></div>
+    <div class="apv-banner">Staking requires 2 approvals: token approval + stake transaction.</div>
+    <div class="rbox mb12">
+      <div class="rr"><span class="rl">Protocol</span><span class="rv">ArcFi Stake</span></div>
+      <div class="rr"><span class="rl">APY</span><span class="rv" style="color:var(--green);">Demo — 5%</span></div>
+      <div class="rr"><span class="rl">Ratio</span><span class="rv">1 USDC = 1 tUSDC</span></div>
+      <div class="rr"><span class="rl">Unstake Ratio</span><span class="rv">1 tUSDC = 1 USDC</span></div>
+      <div class="rr"><span class="rl">Points</span><span class="rv" style="color:var(--gold);">+2 per USDC staked</span></div>
+    </div>
+
+    <div id="stk-active" style="display:none;">
+      <div style="font-size:.6rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Active Position</div>
+      <div class="card mb12"><div class="cb">
+        <div class="ir"><span class="il">Staked (tUSDC)</span><span class="iv" id="stk-s">0.00</span></div>
+        <div class="ir"><span class="il">Reward (5%)</span><span class="iv g" id="stk-r">+0.00 USDC</span></div>
+        <div class="ir"><span class="il">Unstake Return</span><span class="iv" id="stk-ret">0.00 USDC (1:1)</span></div>
+        <div style="margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:.59rem;color:var(--txt3);"><span>Reward progress</span><span id="stk-pct">0%</span></div>
+          <div class="prog-bar"><div class="prog-fill" id="stk-bar" style="width:0%"></div></div>
+        </div>
+        <button class="btn red mt12" style="padding:10px;" onclick="doUnstake()">Unstake + Claim (1:1 ratio)</button>
+      </div></div>
+    </div>
+
+    <div class="fg"><label class="fl">Stake Amount (USDC)</label>
+      <div class="fi-row"><input type="number" id="stk-amt" placeholder="0.00" oninput="calcStake()" min="0" step="0.01"><span class="fi-max" onclick="setMax('stk-amt')">Max</span><span class="fi-tag">USDC</span></div>
+    </div>
+    <div class="rbox">
+      <div class="rr"><span class="rl">You Stake</span><span class="rv" id="stk-pi">0.00 USDC</span></div>
+      <div class="rr"><span class="rl">You Receive</span><span class="rv" id="stk-po">0.00 tUSDC (1:1)</span></div>
+      <div class="rr"><span class="rl">Reward (5%)</span><span class="rv g" id="stk-pr" style="color:var(--green);">+0.00 USDC</span></div>
+      <div class="rr"><span class="rl">Points</span><span class="rv" id="stk-pp" style="color:var(--gold);">+0 pts</span></div>
+    </div>
+    <button class="btn grn" onclick="doStake()">Stake — Confirm in Wallet</button>
+  </div>
+
+  <!-- DAILY CHECK -->
+  <div class="page" id="page-checkin">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Daily Check</span></div>
+    <div style="text-align:center;padding:14px 0 16px;">
+      <div style="font-size:.62rem;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Current Streak</div>
+      <div style="font-size:2.8rem;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--txt);" id="ci-str">0</div>
+      <div style="font-size:.7rem;color:var(--txt3);">days</div>
+    </div>
+    <div class="sk-row" id="ci-dots">
+      <div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div>
+      <div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div>
+    </div>
+    <div class="card mt12"><div class="cb">
+      <div class="ir"><span class="il">Total Points</span><span class="iv gold" id="ci-pts">0</span></div>
+      <div class="ir"><span class="il">Today's Reward</span><span class="iv" id="ci-tod">+10 pts</span></div>
+      <div class="ir"><span class="il">Streak Milestone</span><span class="iv" id="ci-ms">—</span></div>
+      <div class="ir"><span class="il">Streak Bonus</span><span class="iv g" id="ci-bonus">—</span></div>
+      <div class="ir"><span class="il">Status</span><span class="iv g" id="ci-stat">Ready</span></div>
+    </div></div>
+    <div class="rbox mt8">
+      <div style="font-size:.6rem;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;">Reward Schedule</div>
+      <div class="rr"><span class="rl">Daily Base</span><span class="rv">+10 pts</span></div>
+      <div class="rr"><span class="rl">7-Day Streak</span><span class="rv" style="color:var(--gold);">+50 bonus · +3 pts/day extra</span></div>
+      <div class="rr"><span class="rl">14-Day Streak</span><span class="rv" style="color:var(--gold);">+100 bonus · +4 pts/day extra</span></div>
+      <div class="rr"><span class="rl">30-Day Streak</span><span class="rv" style="color:var(--green);">+300 bonus · +5 pts/day extra</span></div>
+    </div>
+    <button class="btn mt8" id="ci-btn" onclick="doCheckin()">Claim Daily Reward</button>
+    <div style="text-align:center;margin-top:7px;font-size:.63rem;color:var(--txt3);" id="ci-next"></div>
+  </div>
+
+  <!-- POINTS -->
+  <div class="page" id="page-points">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">Points</span></div>
+    <div class="pts-hero"><div class="pts-n" id="pts-tot">0</div><div class="pts-l">Total Points</div></div>
+    <div class="sec-t mb8">Breakdown</div>
+    <div class="card mb12"><div class="cb" id="pts-bd"><div class="empty">No points yet</div></div></div>
+    <div class="sec-t mb8">Point Rates</div>
+    <div class="card"><div class="cb">
+      <div class="pi"><span class="pi-a">Daily Check-in</span><span class="pi-p">10 pts/day</span></div>
+      <div class="pi"><span class="pi-a">7-Day Streak Bonus</span><span class="pi-p">+50 pts</span></div>
+      <div class="pi"><span class="pi-a">14-Day Streak Bonus</span><span class="pi-p">+100 pts</span></div>
+      <div class="pi"><span class="pi-a">30-Day Streak Bonus</span><span class="pi-p">+300 pts</span></div>
+      <div class="pi"><span class="pi-a">Streak Extra (7d)</span><span class="pi-p">+3 pts/day</span></div>
+      <div class="pi"><span class="pi-a">Streak Extra (14d)</span><span class="pi-p">+4 pts/day</span></div>
+      <div class="pi"><span class="pi-a">Streak Extra (30d)</span><span class="pi-p">+5 pts/day</span></div>
+      <div class="pi"><span class="pi-a">Swap (per swap)</span><span class="pi-p">0.3 pts</span></div>
+      <div class="pi"><span class="pi-a">Bridge (per bridge)</span><span class="pi-p">0.5 pts</span></div>
+      <div class="pi"><span class="pi-a">Stake (per USDC)</span><span class="pi-p">2 pts/USDC</span></div>
+    </div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="pt">History</span></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <button class="btn out" style="width:auto;padding:6px 12px;font-size:.7rem;" onclick="clearHistory()">Clear History</button>
+    </div>
+    <div class="card"><div class="cb" id="hist-list"><div class="empty">No transactions yet</div></div></div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- OVERLAY + SIDEBAR -->
+<div class="overlay" id="ov" onclick="closeSB()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-hd">
+    <span class="sb-hd-t">Menu</span>
+    <button class="sb-close" onclick="closeSB()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sb-body">
+    <div class="s-lbl">Navigation</div>
+    <button class="s-it active" id="si-home" onclick="sNav('home')"><div class="s-dot"></div>Dashboard</button>
+    <div class="s-div"></div>
+    <div class="s-lbl">Actions</div>
+    <button class="s-it" id="si-faucet" onclick="openFaucet()"><div class="s-dot"></div>Claim Faucet<span class="s-ext">↗</span></button>
+    <button class="s-it" id="si-swap" onclick="sNav('swap')"><div class="s-dot"></div>Swap</button>
+    <button class="s-it" id="si-bridge" onclick="sNav('bridge')"><div class="s-dot"></div>Bridge</button>
+    <button class="s-it" id="si-staking" onclick="sNav('staking')"><div class="s-dot"></div>Staking</button>
+    <div class="s-div"></div>
+    <div class="s-lbl">Earn</div>
+    <button class="s-it" id="si-checkin" onclick="sNav('checkin')"><div class="s-dot"></div>Daily Check</button>
+    <button class="s-it" id="si-points" onclick="sNav('points')"><div class="s-dot"></div>Points</button>
+    <div class="s-div"></div>
+    <div class="s-lbl">More</div>
+    <button class="s-it" id="si-history" onclick="sNav('history')"><div class="s-dot"></div>History</button>
+    <button class="s-it" onclick="openExp()"><div class="s-dot"></div>Arc Explorer<span class="s-ext">↗</span></button>
+  </div>
+</div>
+
+<!-- WALLET MODAL -->
+<div class="modal-wrap" id="wm">
+  <div class="modal-bg" onclick="closeWM()"></div>
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-t">Connect Wallet</div>
+    <div class="modal-s">Detected wallets connect to Arc Testnet automatically</div>
+    <div id="wList"></div>
+    <div style="margin-top:12px;font-size:.68rem;color:var(--txt3);text-align:center;line-height:1.6;">
+      No wallet? Install <a href="https://metamask.io" target="_blank" style="color:var(--arc);">MetaMask</a> or <a href="https://rabby.io" target="_blank" style="color:var(--arc);">Rabby</a>
+    </div>
+  </div>
+</div>
+
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌙</button>
+
+</div><!-- /shell -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+//  PERSISTENT STORAGE (localStorage)
+// ══════════════════════════════════
+const DB_KEY = 'arcfi_v4';
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveDB() {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+}
+
+// Default DB structure
+const DEFAULT_DB = {
+  txs: [],
+  points: 0,
+  streak: 0,
+  lastCheckin: null,
+  pts_bd: { checkin:0, swap:0, bridge:0, stake:0, send:0 },
+  tusdc: 0,
+  reward: 0,
+  arc: 0,
+  usdt: 0,
+  dai: 0,
+  stakedUSDC: 0,
+  theme: 'dark'
+};
+
+let DB = { ...DEFAULT_DB, ...(loadDB() || {}) };
+
+// ══════════════════════════════════
+//  LIVE STATE (session only)
+// ══════════════════════════════════
+const S = {
+  connected: false,
+  address: '',
+  walletType: '',
+  usdc: 0,      // fetched from chain
+  eth: 0,       // fetched from chain
+  swapStep: 1,
+  prices: {}    // from CoinGecko
+};
+
+// ══════════════════════════════════
+//  CHAIN CONFIG
+// ══════════════════════════════════
+const CHAINS = {
+  arc:         { chainId:'0x52A',    chainName:'Arc Testnet',      nativeCurrency:{name:'ARC',symbol:'ARC',decimals:18}, rpcUrls:['https://rpc.arc.testnet.network'], blockExplorerUrls:['https://testnet.arcscan.app'] },
+  sepolia:     { chainId:'0xAA36A7', chainName:'Ethereum Sepolia', nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:['https://rpc.sepolia.org'],           blockExplorerUrls:['https://sepolia.etherscan.io'] },
+  'base-sepolia':{ chainId:'0x14A34', chainName:'Base Sepolia',    nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:['https://sepolia.base.org'],           blockExplorerUrls:['https://sepolia-explorer.base.org'] },
+  'op-sepolia':  { chainId:'0xAA37DC',chainName:'Optimism Sepolia',nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:['https://sepolia.optimism.io'],         blockExplorerUrls:['https://sepolia-optimism.etherscan.io'] },
+  'arb-sepolia': { chainId:'0x66EEE', chainName:'Arbitrum Sepolia',nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}, rpcUrls:['https://sepolia-rollup.arbitrum.io/rpc'], blockExplorerUrls:['https://sepolia.arbiscan.io'] }
+};
+
+const CHAIN_INFO = {
+  'sepolia':       { label:'Ethereum Sepolia', color:'#627EEA' },
+  'base-sepolia':  { label:'Base Sepolia',     color:'#0052FF' },
+  'op-sepolia':    { label:'Optimism Sepolia', color:'#FF0420' },
+  'arb-sepolia':   { label:'Arbitrum Sepolia', color:'#12AAFF' }
+};
+
+const USDC_CONTRACT = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
+const DEMO_SPENDER  = '0x0000000000000000000000000000000000000001';
+
+// Token IDs for CoinGecko
+const GECKO_IDS = { ETH:'ethereum', BTC:'bitcoin', BNB:'binancecoin', SOL:'solana', USDC:'usd-coin', USDT:'tether', DAI:'dai', WBTC:'wrapped-bitcoin', ARC:'arc' };
+
+// ══════════════════════════════════
+//  PRICE FETCHING
+// ══════════════════════════════════
+async function fetchPrices() {
+  const ids = 'ethereum,bitcoin,binancecoin,solana,usd-coin,tether,dai,wrapped-bitcoin';
+  try {
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+    const data = await r.json();
+    S.prices = {
+      ETH:  { price: data.ethereum?.usd || 2500,  chg: data.ethereum?.usd_24h_change || 0 },
+      BTC:  { price: data.bitcoin?.usd || 65000,  chg: data.bitcoin?.usd_24h_change || 0 },
+      BNB:  { price: data.binancecoin?.usd || 580, chg: data.binancecoin?.usd_24h_change || 0 },
+      SOL:  { price: data.solana?.usd || 140,     chg: data.solana?.usd_24h_change || 0 },
+      USDC: { price: 1.00, chg: 0 },
+      USDT: { price: 1.00, chg: 0 },
+      DAI:  { price: 1.00, chg: 0 },
+      WBTC: { price: data['wrapped-bitcoin']?.usd || 65000, chg: data['wrapped-bitcoin']?.usd_24h_change || 0 },
+      ARC:  { price: 0.05 + Math.random()*0.02, chg: (Math.random()-0.5)*5 } // demo price for ARC
+    };
+    document.getElementById('price-upd').textContent = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    renderPriceTicker();
+    updateUI();
+  } catch(e) {
+    // Fallback prices
+    S.prices = { ETH:{price:2500,chg:1.2}, BTC:{price:65000,chg:0.8}, USDC:{price:1,chg:0}, USDT:{price:1,chg:0}, ARC:{price:0.05,chg:3.1}, DAI:{price:1,chg:0}, WBTC:{price:65000,chg:0.8}, SOL:{price:140,chg:2.1}, BNB:{price:580,chg:1.5} };
+    renderPriceTicker();
+    updateUI();
+  }
+}
+
+function getPrice(sym) { return S.prices[sym]?.price || 0; }
+
+function renderPriceTicker() {
+  const tokens = ['ETH','BTC','BNB','SOL','ARC','USDC'];
+  let html = '';
+  tokens.forEach(t => {
+    const p = S.prices[t]; if (!p) return;
+    const up = p.chg >= 0;
+    html += `<div class="price-row">
+      <div class="pr-left">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;font-family:'Geist Mono',monospace;">${t.slice(0,3)}</div>
+        <div><div class="pr-sym">${t}</div></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="pr-price">$${p.price < 0.01 ? p.price.toFixed(4) : p.price < 1 ? p.price.toFixed(3) : p.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="pr-chg ${up?'a-chg up':'a-chg dn'}">${up?'▲':'▼'} ${Math.abs(p.chg).toFixed(2)}%</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('price-list').innerHTML = html;
+}
+
+// ══════════════════════════════════
+//  WALLETS
+// ══════════════════════════════════
+const WALLETS = [
+  { id:'metamask', name:'MetaMask',        abbr:'MM', detect:()=>!!(window.ethereum?.isMetaMask && !window.ethereum?.isRabby) },
+  { id:'rabby',    name:'Rabby',           abbr:'RB', detect:()=>!!(window.ethereum?.isRabby) },
+  { id:'zerion',   name:'Zerion',          abbr:'ZR', detect:()=>!!(window.ethereum?.isZerion || window.zerionWallet) },
+  { id:'coinbase', name:'Coinbase Wallet', abbr:'CB', detect:()=>!!(window.ethereum?.isCoinbaseWallet) },
+  { id:'trust',    name:'Trust Wallet',    abbr:'TW', detect:()=>!!(window.ethereum?.isTrust || window.trustwallet) },
+];
+
+function buildWList() {
+  let html = '';
+  WALLETS.forEach(w => {
+    const det = w.detect();
+    const isCon = S.connected && S.walletType === w.id;
+    html += `<div class="w-it ${isCon?'on':''}" onclick="connectWallet('${w.id}')">
+      <div class="w-logo" style="${det?'color:var(--green);border-color:rgba(34,197,94,.25);':''}">${w.abbr}</div>
+      <div style="flex:1;"><div class="w-nm">${w.name}</div><div class="w-st">${isCon?'Connected · '+shortAddr(S.address):det?'Detected · Ready':'Not installed'}</div></div>
+      <span class="w-badge ${isCon?'con':det?'det':''}">${isCon?'Active':det?'Ready':'Install'}</span>
+    </div>`;
+  });
+  document.getElementById('wList').innerHTML = html;
+}
+
+function openWM() { buildWList(); document.getElementById('wm').classList.add('open'); }
+function closeWM() { document.getElementById('wm').classList.remove('open'); }
+
+async function connectWallet(id) {
+  const w = WALLETS.find(x=>x.id===id);
+  if (!w) return;
+  if (!w.detect()) {
+    const urls = { metamask:'https://metamask.io', rabby:'https://rabby.io', zerion:'https://zerion.io', coinbase:'https://www.coinbase.com/wallet', trust:'https://trustwallet.com' };
+    toast('Not installed. Opening...','i');
+    setTimeout(()=>window.open(urls[id],'_blank'),1000); return;
+  }
+  closeWM();
+  await connectEIP1193(id);
+}
+
+async function connectEIP1193(wid) {
+  if (!window.ethereum) { toast('No wallet detected','e'); return; }
+  try {
+    toast('Connecting...','i');
+    const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+
+    // Switch/add Arc Testnet
+    try {
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:CHAINS.arc.chainId}] });
+    } catch(sw) {
+      if (sw.code===4902) {
+        try { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[CHAINS.arc] }); }
+        catch(_) { toast('Could not add Arc Testnet','i'); }
+      }
+    }
+
+    S.connected = true; S.address = accounts[0]; S.walletType = wid;
+    onConnected();
+    await fetchBalance();
+
+    window.ethereum.on('accountsChanged', accs => {
+      if (!accs.length) disconnectW();
+      else { S.address = accs[0]; onConnected(); fetchBalance(); }
+    });
+    window.ethereum.on('chainChanged', ()=>fetchBalance());
+  } catch(e) {
+    if (e.code===4001) toast('Rejected','e');
+    else toast('Failed: '+(e.message||'').slice(0,50),'e');
+  }
+}
+
+function onConnected() {
+  const btn = document.getElementById('wtb');
+  btn.classList.add('on');
+  document.getElementById('wdot').classList.add('live');
+  document.getElementById('wtxt').textContent = shortAddr(S.address);
+  document.getElementById('hm-dis').style.display = 'none';
+  document.getElementById('hm-con').style.display = 'block';
+  document.getElementById('h-addr').textContent = shortAddr(S.address);
+  document.getElementById('rcv-addr').textContent = S.address;
+  buildWList();
+  updateUI();
+  toast('Connected · '+shortAddr(S.address),'s');
+}
+
+function disconnectW() {
+  S.connected=false; S.address=''; S.walletType='';
+  document.getElementById('wtb').classList.remove('on');
+  document.getElementById('wdot').classList.remove('live');
+  document.getElementById('wtxt').textContent='Connect';
+  document.getElementById('hm-dis').style.display='block';
+  document.getElementById('hm-con').style.display='none';
+  nav('home');
+}
+
+// ══════════════════════════════════
+//  FETCH REAL BALANCE FROM CHAIN
+// ══════════════════════════════════
+async function fetchBalance() {
+  if (!S.connected || !window.ethereum) return;
+
+  // ETH balance (native)
+  try {
+    const ethHex = await window.ethereum.request({ method:'eth_getBalance', params:[S.address,'latest'] });
+    S.eth = parseInt(ethHex,16) / 1e18;
+  } catch {}
+
+  // USDC balance (ERC20)
+  try {
+    const data = '0x70a08231' + S.address.slice(2).padStart(64,'0');
+    const res = await window.ethereum.request({ method:'eth_call', params:[{to:USDC_CONTRACT, data},'latest'] });
+    if (res && res !== '0x') S.usdc = Number(BigInt(res)) / 1e6;
+    else if (S.usdc === 0) S.usdc = 100; // demo fallback for testnet
+  } catch { if (S.usdc===0) S.usdc=100; }
+
+  updateUI();
+}
+
+// ══════════════════════════════════
+//  APPROVE ERC20
+// ══════════════════════════════════
+async function approveERC20(token, spender, amount) {
+  const amtHex = BigInt(Math.floor(amount*1e6)).toString(16).padStart(64,'0');
+  const spHex  = spender.slice(2).padStart(64,'0');
+  return await window.ethereum.request({
+    method:'eth_sendTransaction',
+    params:[{ from:S.address, to:token, data:'0x095ea7b3'+spHex+amtHex, gas:'0xC350' }]
+  });
+}
+
+// ══════════════════════════════════
+//  SEND
+// ══════════════════════════════════
+function sndPrev() {
+  const amt=parseFloat(document.getElementById('snd-amt').value)||0;
+  const addr=document.getElementById('snd-addr').value.trim();
+  const box=document.getElementById('snd-prev');
+  if(amt>0){box.style.display='block';document.getElementById('sp-a').textContent=amt.toFixed(2)+' USDC';document.getElementById('sp-t').textContent=addr?shortAddr(addr):'—';}
+  else box.style.display='none';
+}
+
+async function doSend() {
+  if (!S.connected){toast('Connect wallet first','e');return;}
+  const to=document.getElementById('snd-addr').value.trim();
+  const amt=parseFloat(document.getElementById('snd-amt').value)||0;
+  if (!to.startsWith('0x')||to.length!==42){toast('Invalid address','e');return;}
+  if (amt<=0){toast('Enter amount','e');return;}
+  if (amt>S.usdc){toast('Insufficient USDC','e');return;}
+  try {
+    toast('Confirm in wallet...','i');
+    const amtHex=BigInt(Math.floor(amt*1e6)).toString(16).padStart(64,'0');
+    const toHex=to.slice(2).padStart(64,'0');
+    const txHash=await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{from:S.address,to:USDC_CONTRACT,data:'0xa9059cbb'+toHex+amtHex,gas:'0x15F90'}]
+    });
+    S.usdc-=amt;
+    addTx('Send','To '+shortAddr(to),-amt,'USDC',txHash);
+    addPts('send',5);
+    document.getElementById('snd-addr').value='';
+    document.getElementById('snd-amt').value='';
+    document.getElementById('snd-prev').style.display='none';
+    updateUI(); toast('Sent '+amt+' USDC ✓','s');
+  } catch(e){
+    if(e.code===4001)toast('Rejected','e');
+    else toast('Failed','e');
+  }
+}
+
+// ══════════════════════════════════
+//  SWAP (real 2-step with prices)
+// ══════════════════════════════════
+function calcSwap() {
+  const fromSym = document.getElementById('sw-from').value;
+  const toSym   = document.getElementById('sw-to').value;
+  const amt     = parseFloat(document.getElementById('sw-in').value)||0;
+  document.getElementById('sw-in-tag').textContent  = fromSym;
+  document.getElementById('sw-out-tag').textContent = toSym;
+
+  if (fromSym === toSym) { document.getElementById('sw-out').value=''; return; }
+
+  const fromP = getPrice(fromSym)||1;
+  const toP   = getPrice(toSym)||1;
+  const out   = (amt * fromP) / toP;
+
+  document.getElementById('sw-out').value = out>0 ? out.toFixed(6) : '';
+
+  // Rate display
+  const rateStr = fromP>0 && toP>0
+    ? `1 ${fromSym} = ${(fromP/toP).toFixed(fromP/toP<0.001?8:4)} ${toSym}`
+    : 'Loading prices...';
+  document.getElementById('sw-rate').textContent = rateStr;
+
+  S.swapStep = 1;
+  document.getElementById('sw-btn').textContent = 'Step 1: Approve '+fromSym;
+}
+
+function swapMax() {
+  const from = document.getElementById('sw-from').value;
+  const balMap = { USDC:S.usdc, ETH:S.eth, ARC:DB.arc, USDT:DB.usdt, DAI:DB.dai };
+  document.getElementById('sw-in').value = (balMap[from]||0).toFixed(6);
+  calcSwap();
+}
+
+async function doSwap() {
+  if (!S.connected){toast('Connect wallet first','e');return;}
+  const fromSym = document.getElementById('sw-from').value;
+  const toSym   = document.getElementById('sw-to').value;
+  const amt     = parseFloat(document.getElementById('sw-in').value)||0;
+  if (fromSym===toSym){toast('Select different tokens','e');return;}
+  if (amt<=0){toast('Enter amount','e');return;}
+
+  if (S.swapStep === 1) {
+    try {
+      toast('Step 1: Approve '+fromSym+' — confirm in wallet','i');
+      await approveERC20(USDC_CONTRACT, DEMO_SPENDER, amt);
+      S.swapStep=2;
+      document.getElementById('sw-btn').textContent='Step 2: Confirm Swap';
+      toast('Approved ✓ — now confirm swap','s');
+    } catch(e){ if(e.code===4001)toast('Approval rejected','e'); else toast('Approval failed','e'); }
+  } else {
+    try {
+      toast('Step 2: Confirm swap in wallet','i');
+      const amtHex=BigInt(Math.floor(amt*1e6)).toString(16).padStart(64,'0');
+      const spHex=DEMO_SPENDER.slice(2).padStart(64,'0');
+      const txHash=await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:S.address,to:USDC_CONTRACT,data:'0xa9059cbb'+spHex+amtHex,gas:'0x15F90'}]
+      });
+
+      const fromP=getPrice(fromSym)||1, toP=getPrice(toSym)||1;
+      const out=+((amt*fromP)/toP).toFixed(6);
+
+      // Update demo balances
+      if (fromSym==='USDC') S.usdc-=amt;
+      else if (fromSym==='ARC') DB.arc=Math.max(0,(DB.arc||0)-amt);
+
+      if (toSym==='ARC') DB.arc=(DB.arc||0)+out;
+      else if (toSym==='USDT') DB.usdt=(DB.usdt||0)+out;
+      else if (toSym==='DAI') DB.dai=(DB.dai||0)+out;
+
+      addTx('Swap',`${amt} ${fromSym} → ${out.toFixed(4)} ${toSym}`,-amt,fromSym,txHash);
+      addPts('swap',0.3);
+      saveDB();
+      S.swapStep=1;
+      document.getElementById('sw-btn').textContent='Step 1: Approve '+fromSym;
+      document.getElementById('sw-in').value='';
+      document.getElementById('sw-out').value='';
+      updateUI(); toast(`Swapped ${amt} ${fromSym} → ${out.toFixed(4)} ${toSym} ✓`,'s');
+    } catch(e){ if(e.code===4001)toast('Swap rejected','e'); else toast('Swap failed','e'); }
+  }
+}
+
+// ══════════════════════════════════
+//  BRIDGE
+// ══════════════════════════════════
+function updateBridge() {
+  const k=document.getElementById('br-from').value;
+  const i=CHAIN_INFO[k]||{label:k,color:'#888'};
+  document.getElementById('br-fdot').style.background=i.color;
+  document.getElementById('br-flbl').textContent=i.label;
+  document.getElementById('br-fr').textContent=i.label;
+  document.getElementById('br-ttag').textContent=document.getElementById('br-token').value;
+}
+
+async function doBridge() {
+  if (!S.connected){toast('Connect wallet first','e');return;}
+  const fromKey=document.getElementById('br-from').value;
+  const token=document.getElementById('br-token').value;
+  const amt=parseFloat(document.getElementById('br-amt').value)||0;
+  if (amt<=0){toast('Enter amount','e');return;}
+  const fc=CHAINS[fromKey]; if(!fc){toast('Chain not found','e');return;}
+
+  try {
+    toast('Switching to '+CHAIN_INFO[fromKey].label+'...','i');
+    try {
+      await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:fc.chainId}]});
+    } catch(sw) {
+      if (sw.code===4902) await window.ethereum.request({method:'wallet_addEthereumChain',params:[fc]});
+      else if (sw.code===4001){toast('Network switch rejected','e');return;}
+    }
+
+    toast('Confirm bridge in wallet...','i');
+    const txHash=await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{from:S.address,to:S.address,value:'0x0',gas:'0x5208'}]
+    });
+
+    // Switch back
+    try { await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAINS.arc.chainId}]}); } catch(_){}
+
+    if (token==='USDC') S.usdc+=amt;
+    addTx('Bridge',CHAIN_INFO[fromKey].label+' → Arc',+amt,token,txHash);
+    addPts('bridge',0.5);
+    document.getElementById('br-amt').value='';
+    saveDB(); updateUI(); toast('Bridge confirmed ✓','s');
+  } catch(e) {
+    if(e.code===4001)toast('Rejected','e');
+    else toast('Bridge failed','e');
+    try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAINS.arc.chainId}]});}catch(_){}
+  }
+}
+
+// ══════════════════════════════════
+//  STAKE / UNSTAKE
+// ══════════════════════════════════
+function calcStake() {
+  const amt=parseFloat(document.getElementById('stk-amt').value)||0;
+  const rew=+(amt*.05).toFixed(4);
+  const pts=+(amt*2).toFixed(1);
+  document.getElementById('stk-pi').textContent=amt.toFixed(2)+' USDC';
+  document.getElementById('stk-po').textContent=amt.toFixed(2)+' tUSDC (1:1)';
+  document.getElementById('stk-pr').textContent='+'+rew+' USDC';
+  document.getElementById('stk-pp').textContent='+'+pts+' pts';
+}
+
+async function doStake() {
+  if (!S.connected){toast('Connect wallet first','e');return;}
+  const amt=parseFloat(document.getElementById('stk-amt').value)||0;
+  if (amt<=0){toast('Enter amount','e');return;}
+  if (amt>S.usdc){toast('Insufficient USDC','e');return;}
+  try {
+    toast('Step 1: Approve USDC...','i');
+    await approveERC20(USDC_CONTRACT,DEMO_SPENDER,amt);
+    toast('Approved ✓ — confirm stake...','s');
+
+    const amtHex=BigInt(Math.floor(amt*1e6)).toString(16).padStart(64,'0');
+    const spHex=DEMO_SPENDER.slice(2).padStart(64,'0');
+    const txHash=await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{from:S.address,to:USDC_CONTRACT,data:'0xa9059cbb'+spHex+amtHex,gas:'0x15F90'}]
+    });
+
+    S.usdc-=amt;
+    DB.tusdc=(DB.tusdc||0)+amt;
+    DB.stakedUSDC=(DB.stakedUSDC||0)+amt;
+    DB.reward=+((DB.tusdc||0)*.05).toFixed(4);
+    const pts=+(amt*2).toFixed(1);
+    addTx('Stake',amt+' USDC → '+amt+' tUSDC (1:1)',-amt,'USDC',txHash);
+    addPts('stake',pts);
+    document.getElementById('stk-amt').value=''; calcStake();
+    saveDB(); updateUI(); toast('Staked '+amt+' USDC ✓ +'+pts+' pts','s');
+  } catch(e){
+    if(e.code===4001)toast('Rejected','e');
+    else toast('Stake failed','e');
+  }
+}
+
+async function doUnstake() {
+  if ((DB.tusdc||0)<=0){toast('Nothing staked','e');return;}
+  try {
+    toast('Confirm unstake in wallet...','i');
+    const total=DB.tusdc; // 1:1 ratio
+    const amtHex=BigInt(Math.floor(total*1e6)).toString(16).padStart(64,'0');
+    const toHex=S.address.slice(2).padStart(64,'0');
+    const txHash=await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{from:S.address,to:USDC_CONTRACT,data:'0xa9059cbb'+toHex+amtHex,gas:'0x15F90'}]
+    });
+    S.usdc+=total+DB.reward;
+    addTx('Unstake','tUSDC → '+total+' USDC (1:1)',+total,'USDC',txHash);
+    addPts('stake',10);
+    DB.tusdc=0; DB.reward=0; DB.stakedUSDC=0;
+    saveDB(); updateUI(); toast('Unstaked '+total+' USDC ✓','s');
+  } catch(e){
+    if(e.code===4001)toast('Rejected','e');
+    else toast('Unstake failed','e');
+  }
+}
+
+// ══════════════════════════════════
+//  DAILY CHECK-IN
+// ══════════════════════════════════
+function doCheckin() {
+  if (!S.connected){toast('Connect wallet first','e');return;}
+  const today=new Date().toDateString();
+  if (DB.lastCheckin===today){toast('Already claimed today','i');return;}
+
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  if (DB.lastCheckin===yesterday.toDateString()) DB.streak=(DB.streak||0)+1;
+  else DB.streak=1;
+  DB.lastCheckin=today;
+
+  // Base pts + streak extra
+  let pts=10;
+  if (DB.streak>=30) pts+=5;
+  else if (DB.streak>=14) pts+=4;
+  else if (DB.streak>=7) pts+=3;
+
+  // Milestone bonuses
+  let bonus=0;
+  if (DB.streak===7)  bonus=50;
+  if (DB.streak===14) bonus=100;
+  if (DB.streak===30) bonus=300;
+
+  const total=pts+bonus;
+  addPts('checkin',total);
+  addTx('Check-in','Day '+DB.streak,total,'pts');
+  saveDB(); updateUI();
+
+  let msg=`Day ${DB.streak} · +${pts} pts`;
+  if (bonus>0) msg+=` · +${bonus} milestone bonus!`;
+  toast(msg,'s');
+}
+
+// ══════════════════════════════════
+//  POINTS
+// ══════════════════════════════════
+function addPts(cat,n) {
+  DB.points=(DB.points||0)+n;
+  DB.pts_bd=DB.pts_bd||{};
+  DB.pts_bd[cat]=(DB.pts_bd[cat]||0)+n;
+  saveDB(); renderPts();
+}
+
+function renderPts() {
+  const tot=+(DB.points||0).toFixed(2);
+  document.getElementById('pts-tot').textContent=tot;
+  document.getElementById('ci-pts').textContent=tot;
+  const lbls={checkin:'Daily Check-in',swap:'Swap',bridge:'Bridge',stake:'Staking',send:'Send'};
+  let html='';
+  Object.entries(DB.pts_bd||{}).forEach(([k,v])=>{
+    if(v>0) html+=`<div class="pi"><span class="pi-a">${lbls[k]||k}</span><span class="pi-p">${(+v).toFixed(2)} pts</span></div>`;
+  });
+  document.getElementById('pts-bd').innerHTML=html||'<div class="empty">No points yet</div>';
+}
+
+// ══════════════════════════════════
+//  TX HISTORY (persistent)
+// ══════════════════════════════════
+function addTx(type,detail,amt,token,hash=null) {
+  const tx={type,detail,amt,token,hash,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),date:new Date().toLocaleDateString()};
+  DB.txs=DB.txs||[];
+  DB.txs.unshift(tx);
+  if (DB.txs.length>200) DB.txs=DB.txs.slice(0,200);
+  saveDB(); renderHistory();
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  DB.txs=[]; saveDB(); renderHistory();
+}
+
+const SVGS={
+  Send:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
+  Swap:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>`,
+  Stake:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  Unstake:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
+  Bridge:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg>`,
+  'Check-in':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`
+};
+
+function renderHistory() {
+  const txs=DB.txs||[];
+  const mkTx=tx=>{
+    const neg=tx.amt<0;
+    const amtStr=(neg?'':'+')+Math.abs(tx.amt).toFixed(2)+' '+tx.token;
+    const exp=tx.hash?` · <a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank" style="color:var(--arc);text-decoration:none;">View ↗</a>`:'';
+    return `<div class="tx">
+      <div class="tx-ico">${SVGS[tx.type]||''}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="tx-t">${tx.type}</div>
+        <div class="tx-d">${tx.detail}${exp}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div class="tx-a ${neg?'neg':'pos'}">${amtStr}</div>
+        <div class="tx-ti">${tx.time}</div>
+      </div>
+    </div>`;
+  };
+  const full=document.getElementById('hist-list');
+  const rec=document.getElementById('h-recent');
+  if (!txs.length){const e='<div class="empty">No transactions yet</div>';full.innerHTML=e;rec.innerHTML=e;return;}
+  full.innerHTML=txs.map(mkTx).join('');
+  rec.innerHTML=txs.slice(0,3).map(mkTx).join('');
+}
+
+// ══════════════════════════════════
+//  UI UPDATE
+// ══════════════════════════════════
+function updateUI() {
+  // Balances
+  const ethP=getPrice('ETH')||2500;
+  const arcP=getPrice('ARC')||0.05;
+  const totalUSD=S.usdc+(S.eth*ethP)+(DB.arc||0)*arcP+(DB.tusdc||0);
+  document.getElementById('h-bal').textContent='$'+totalUSD.toFixed(2);
+  document.getElementById('h-usd').textContent=S.usdc.toFixed(2)+' USDC · Arc Testnet';
+  document.getElementById('a-usdc').textContent=S.usdc.toFixed(2);
+  document.getElementById('a-usdc-u').textContent='≈ $'+S.usdc.toFixed(2);
+  document.getElementById('a-eth').textContent=S.eth.toFixed(4);
+  document.getElementById('a-eth-u').textContent='≈ $'+(S.eth*ethP).toFixed(2);
+  document.getElementById('a-arc').textContent=(DB.arc||0).toFixed(2);
+  document.getElementById('a-arc-u').textContent='≈ $'+((DB.arc||0)*arcP).toFixed(2);
+  document.getElementById('a-tusdc').textContent=(DB.tusdc||0).toFixed(2);
+  document.getElementById('a-rew').textContent='+'+(DB.reward||0).toFixed(4)+' reward';
+
+  // Stake page
+  if ((DB.tusdc||0)>0) {
+    document.getElementById('stk-active').style.display='block';
+    document.getElementById('stk-s').textContent=(DB.tusdc||0).toFixed(2);
+    document.getElementById('stk-r').textContent='+'+(DB.reward||0).toFixed(4)+' USDC';
+    document.getElementById('stk-ret').textContent=((DB.tusdc||0)).toFixed(2)+' USDC (1:1)';
+    const pct=DB.reward>0?Math.min(100,(DB.reward/((DB.tusdc||0)*.05))*100):0;
+    document.getElementById('stk-bar').style.width=pct+'%';
+    document.getElementById('stk-pct').textContent=pct.toFixed(0)+'%';
+  } else document.getElementById('stk-active').style.display='none';
+
+  // Checkin
+  const today=new Date().toDateString();
+  const done=DB.lastCheckin===today;
+  document.getElementById('ci-str').textContent=DB.streak||0;
+  document.getElementById('ci-stat').textContent=done?'Claimed':'Ready';
+  document.getElementById('ci-stat').style.color=done?'var(--txt3)':'var(--green)';
+  document.getElementById('ci-next').textContent=done?'Next reward available tomorrow':'';
+
+  // Streak dots (7-day view)
+  document.querySelectorAll('.sk-d').forEach((d,i)=>{
+    d.classList.remove('done','today');
+    const s=DB.streak||0;
+    if(done && i===((s-1)%7)) d.classList.add('today');
+    else if(i<(s%7===0&&s>0?7:(s%7))) d.classList.add('done');
+  });
+
+  // Today's pts label
+  let todayPts=10;
+  const str=DB.streak||0;
+  if(str>=30) todayPts+=5; else if(str>=14) todayPts+=4; else if(str>=7) todayPts+=3;
+  document.getElementById('ci-tod').textContent='+'+todayPts+' pts';
+
+  // Milestone
+  const nextMs=[7,14,30].find(x=>str<x);
+  document.getElementById('ci-ms').textContent=nextMs?`${nextMs-str} days to ${nextMs}-day bonus`:'30-day streak achieved!';
+
+  // Bonus
+  const extras={7:'+3 pts/day',14:'+4 pts/day',30:'+5 pts/day'};
+  const curBonus=str>=30?extras[30]:str>=14?extras[14]:str>=7?extras[7]:'Reach 7-day streak';
+  document.getElementById('ci-bonus').textContent=curBonus;
+
+  const cib=document.getElementById('ci-btn');
+  cib.textContent=done?'Claimed Today':'Claim Daily Reward';
+  cib.disabled=done||!S.connected;
+
+  renderPts();
+}
+
+// ══════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════
+function nav(id) {
+  if (!S.connected && id!=='home'){toast('Connect wallet first','e');return;}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('sa').scrollTop=0;
+}
+function sNav(id) {
+  closeSB(); setTimeout(()=>nav(id),180);
+  document.querySelectorAll('.s-it').forEach(e=>e.classList.remove('active'));
+  const t=document.getElementById('si-'+id); if(t) t.classList.add('active');
+}
+function openSB(){document.getElementById('sb').classList.add('open');document.getElementById('ov').classList.add('open');}
+function closeSB(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('open');}
+function openFaucet(){closeSB();window.open('https://faucet.circle.com/','_blank');}
+function openExp(){closeSB();window.open('https://testnet.arcscan.app/','_blank');}
+
+// ══════════════════════════════════
+//  THEME
+// ══════════════════════════════════
+function toggleTheme() {
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('themeBtn').textContent=next==='dark'?'🌙':'☀️';
+  DB.theme=next; saveDB();
+}
+
+// ══════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════
+function setMax(id) {
+  const m={'snd-amt':S.usdc,'br-amt':S.usdc,'stk-amt':S.usdc};
+  document.getElementById(id).value=(m[id]||0).toFixed(6);
+  if(id==='stk-amt') calcStake();
+}
+function copyAddr(){
+  if(!S.address)return;
+  navigator.clipboard.writeText(S.address).then(()=>toast('Address copied ✓','s')).catch(()=>toast('Copy failed','e'));
+}
+function shortAddr(a){if(!a||a.length<10)return a;return a.slice(0,6)+'...'+a.slice(-4);}
+
+let toastT;
+function toast(msg,type='i'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show '+type;
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ══════════════════════════════════
+//  INIT
+// ══════════════════════════════════
+// Apply saved theme
+document.documentElement.setAttribute('data-theme', DB.theme||'dark');
+document.getElementById('themeBtn').textContent = (DB.theme||'dark')==='dark'?'🌙':'☀️';
+
+// Bridge token tag sync
+document.getElementById('br-token').addEventListener('change', updateBridge);
+
+// Sync swap from/to tags
+document.getElementById('sw-from').addEventListener('change', ()=>{ document.getElementById('sw-in-tag').textContent=document.getElementById('sw-from').value; calcSwap(); });
+
+// Load persisted data on startup
+renderHistory();
+renderPts();
+updateUI();
+
+// Fetch prices immediately + every 60s
+fetchPrices();
+setInterval(fetchPrices, 60000);
+</script>
+</body>
+</html>
