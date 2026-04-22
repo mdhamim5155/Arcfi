@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ArcFi Mini</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#08090C;
+  --bg1:#0D0F14;
+  --bg2:#12151C;
+  --bg3:#181C26;
+  --bg4:#1E2330;
+  --line:#FFFFFF0D;
+  --line2:#FFFFFF14;
+  --line3:#FFFFFF1F;
+  --txt:#F2F4F8;
+  --txt2:#8B93A5;
+  --txt3:#4A5260;
+  --arc:#3B82F6;
+  --arc-dim:#1E3A6E;
+  --green:#22C55E;
+  --green-dim:#14532D;
+  --gold:#F59E0B;
+  --gold-dim:#451A03;
+  --red:#EF4444;
+  --usdc:#2775CA;
+  --radius:14px;
+  --radius-sm:9px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Geist',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  font-size:15px;
+  line-height:1.5;
+}
+
+/* ─── LAYOUT SHELL ─── */
+.shell{
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  max-width:480px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+  background:var(--bg);
+  z-index:20;
+  flex-shrink:0;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo{
+  font-size:1rem;
+  font-weight:700;
+  letter-spacing:-0.03em;
+  color:var(--txt);
+}
+.topbar-logo span{color:var(--arc);}
+.net-pill{
+  font-family:'Geist Mono',monospace;
+  font-size:0.6rem;
+  letter-spacing:0.06em;
+  color:var(--txt3);
+  background:var(--bg3);
+  border:1px solid var(--line2);
+  border-radius:4px;
+  padding:2px 7px;
+  text-transform:uppercase;
+}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{
+  width:34px;height:34px;
+  border:1px solid var(--line2);
+  border-radius:var(--radius-sm);
+  background:transparent;
+  color:var(--txt2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  flex-shrink:0;
+}
+.icon-btn:hover{border-color:var(--line3);color:var(--txt);}
+.icon-btn svg{width:16px;height:16px;}
+
+/* ─── SCROLL AREA ─── */
+.scroll-area{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.scroll-area::-webkit-scrollbar{display:none;}
+
+/* ─── PAGE ─── */
+.page{
+  display:none;
+  padding:20px 18px 28px;
+  animation:fadeUp .2s ease;
+}
+.page.active{display:block;}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ─── SIDEBAR OVERLAY ─── */
+.overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:40;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  position:absolute;right:0;top:0;bottom:0;
+  width:260px;
+  background:var(--bg1);
+  border-left:1px solid var(--line2);
+  z-index:50;
+  transform:translateX(100%);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+.sidebar.open{transform:translateX(0);}
+.sidebar-head{
+  padding:18px 18px 12px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar-head-title{font-size:.7rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;}
+.sidebar-close{
+  width:28px;height:28px;border:none;background:transparent;
+  color:var(--txt3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.sidebar-close svg{width:14px;height:14px;}
+.sidebar-body{flex:1;overflow-y:auto;padding:8px 0;}
+.sidebar-body::-webkit-scrollbar{display:none;}
+
+.s-section{margin-bottom:4px;}
+.s-section-label{
+  font-size:.62rem;font-weight:600;color:var(--txt3);
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 18px 4px;
+}
+.s-item{
+  display:flex;align-items:center;
+  padding:11px 18px;
+  cursor:pointer;
+  transition:background .12s;
+  border:none;background:transparent;
+  width:100%;text-align:left;
+  color:var(--txt2);
+  font-family:'Geist',sans-serif;
+  font-size:.88rem;font-weight:500;
+  gap:10px;
+}
+.s-item:hover{background:var(--bg2);color:var(--txt);}
+.s-item.active{color:var(--arc);}
+.s-item-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--line3);flex-shrink:0;
+}
+.s-item.active .s-item-dot{background:var(--arc);}
+.s-item-ext{
+  margin-left:auto;
+  font-size:.6rem;color:var(--txt3);
+  font-family:'Geist Mono',monospace;
+  letter-spacing:.04em;
+}
+.s-divider{height:1px;background:var(--line);margin:6px 18px;}
+
+/* ─── WALLET PANEL ─── */
+.wallet-panel{
+  position:absolute;top:56px;right:0;left:0;
+  background:var(--bg1);
+  border-bottom:1px solid var(--line2);
+  z-index:30;
+  transform:translateY(-110%);
+  transition:transform .22s cubic-bezier(.4,0,.2,1);
+  max-height:70vh;overflow-y:auto;
+}
+.wallet-panel.open{transform:translateY(0);}
+.wallet-panel-head{
+  padding:14px 18px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wallet-panel-title{font-size:.72rem;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;}
+.wallet-list{padding:0 10px 10px;}
+.wallet-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 10px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:background .12s;
+}
+.wallet-item:hover{background:var(--bg3);}
+.wallet-item.active{background:var(--bg2);border:1px solid var(--line2);}
+.wallet-logo{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.8rem;font-family:'Geist Mono',monospace;
+  flex-shrink:0;border:1px solid var(--line2);
+}
+.wallet-info{flex:1;min-width:0;}
+.wallet-name{font-size:.85rem;font-weight:600;color:var(--txt);}
+.wallet-status{font-size:.68rem;color:var(--txt3);margin-top:1px;}
+.wallet-badge{
+  font-size:.6rem;font-family:'Geist Mono',monospace;
+  background:var(--bg3);border:1px solid var(--line2);
+  border-radius:4px;padding:2px 6px;color:var(--txt3);
+}
+.wallet-badge.detected{color:var(--green);border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.06);}
+.wallet-badge.active{color:var(--arc);border-color:rgba(59,130,246,.2);background:rgba(59,130,246,.06);}
+
+/* ─── HOME PAGE ─── */
+.home-hero{
+  padding:24px 0 20px;
+  text-align:center;
+}
+.hh-label{font-size:.68rem;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.hh-balance{
+  font-size:2.6rem;font-weight:700;letter-spacing:-.04em;
+  color:var(--txt);line-height:1;margin-bottom:6px;
+}
+.hh-sub{font-size:.78rem;color:var(--txt3);}
+.hh-addr{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:12px;padding:6px 12px;
+  border:1px solid var(--line2);border-radius:20px;
+  font-family:'Geist Mono',monospace;font-size:.65rem;color:var(--txt2);
+  cursor:pointer;transition:border-color .15s;
+}
+.hh-addr:hover{border-color:var(--line3);}
+.hh-addr-dot{width:5px;height:5px;border-radius:50%;background:var(--green);}
+
+/* ─── ACTION ROW ─── */
+.action-row{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin:16px 0;
+}
+.ar-btn{
+  background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--radius);padding:16px;
+  cursor:pointer;transition:all .15s;
+  text-align:center;
+  font-family:'Geist',sans-serif;
+}
+.ar-btn:hover{border-color:var(--line3);background:var(--bg3);}
+.ar-btn-icon{
+  width:36px;height:36px;border-radius:9px;
+  margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.ar-btn-icon svg{width:18px;height:18px;}
+.ar-btn-label{font-size:.8rem;font-weight:600;color:var(--txt2);}
+
+/* ─── SECTION ─── */
+.sec{margin-bottom:20px;}
+.sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.sec-title{font-size:.68rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;}
+.sec-link{font-size:.7rem;color:var(--arc);cursor:pointer;background:none;border:none;font-family:'Geist',sans-serif;}
+
+/* ─── ASSET LIST ─── */
+.asset-item{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 0;
+  border-bottom:1px solid var(--line);
+}
+.asset-item:last-child{border-bottom:none;}
+.asset-logo{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;font-family:'Geist Mono',monospace;
+  border:1px solid var(--line2);flex-shrink:0;
+}
+.asset-info{flex:1;min-width:0;}
+.asset-name{font-size:.88rem;font-weight:600;}
+.asset-chain{font-size:.65rem;color:var(--txt3);}
+.asset-right{text-align:right;}
+.asset-bal{font-size:.9rem;font-weight:600;font-family:'Geist Mono',monospace;}
+.asset-usd{font-size:.65rem;color:var(--txt3);}
+
+/* ─── CARD ─── */
+.card{
+  background:var(--bg1);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:12px;
+}
+.card-body{padding:16px;}
+.card-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px solid var(--line);
+  font-size:.82rem;
+}
+.card-row:last-child{border-bottom:none;}
+.card-row-label{color:var(--txt3);}
+.card-row-val{font-weight:500;font-family:'Geist Mono',monospace;font-size:.78rem;}
+
+/* ─── FORM ─── */
+.f-group{margin-bottom:14px;}
+.f-label{
+  font-size:.65rem;font-weight:600;color:var(--txt3);
+  letter-spacing:.08em;text-transform:uppercase;
+  display:block;margin-bottom:6px;
+}
+.f-input{
+  width:100%;
+  background:var(--bg2);
+  border:1px solid var(--line2);
+  border-radius:var(--radius-sm);
+  padding:13px 14px;
+  color:var(--txt);
+  font-family:'Geist',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .15s;
+}
+.f-input:focus{border-color:var(--arc);}
+.f-input::placeholder{color:var(--txt3);}
+.f-row{
+  display:flex;
+  background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);overflow:hidden;
+  transition:border-color .15s;
+}
+.f-row:focus-within{border-color:var(--arc);}
+.f-row input{
+  flex:1;background:transparent;border:none;
+  padding:13px 14px;color:var(--txt);
+  font-family:'Geist',sans-serif;font-size:.9rem;outline:none;
+  min-width:0;
+}
+.f-row input::placeholder{color:var(--txt3);}
+.f-tag{
+  padding:0 12px;
+  display:flex;align-items:center;
+  font-family:'Geist Mono',monospace;font-size:.7rem;color:var(--txt3);
+  border-left:1px solid var(--line2);white-space:nowrap;
+}
+.f-max{
+  padding:0 12px;
+  display:flex;align-items:center;
+  font-size:.7rem;font-weight:600;color:var(--arc);
+  cursor:pointer;border-left:1px solid var(--line2);
+}
+.f-select{
+  width:100%;background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);padding:13px 14px;
+  color:var(--txt);font-family:'Geist',sans-serif;font-size:.9rem;
+  outline:none;cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5260' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+  padding-right:36px;
+}
+.f-select option{background:var(--bg2);}
+
+/* ─── SWAP ARROW ─── */
+.swap-div{
+  text-align:center;margin:6px 0;
+  color:var(--txt3);font-size:1.1rem;
+}
+
+/* ─── RATE BOX ─── */
+.rate-box{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:12px 14px;
+  margin-bottom:14px;
+}
+.rate-row{
+  display:flex;justify-content:space-between;
+  font-size:.75rem;padding:3px 0;
+}
+.rate-row-l{color:var(--txt3);}
+.rate-row-r{font-weight:500;font-family:'Geist Mono',monospace;font-size:.72rem;}
+
+/* ─── PRIMARY BUTTON ─── */
+.btn{
+  width:100%;padding:14px;
+  background:var(--arc);
+  color:#fff;border:none;border-radius:var(--radius-sm);
+  font-family:'Geist',sans-serif;font-size:.9rem;font-weight:600;
+  cursor:pointer;transition:all .15s;letter-spacing:.01em;
+}
+.btn:hover:not(:disabled){filter:brightness(1.1);}
+.btn:active:not(:disabled){transform:scale(.99);}
+.btn:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+.btn.green{background:var(--green);color:#0a1a0a;}
+.btn.red{background:var(--red);}
+.btn.outline{background:transparent;border:1px solid var(--line2);color:var(--txt2);}
+.btn.outline:hover{border-color:var(--line3);color:var(--txt);}
+.btn-sm{width:auto;padding:8px 16px;font-size:.78rem;}
+
+/* ─── INFO ROW ─── */
+.info-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--line);
+  font-size:.82rem;
+}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--txt3);}
+.info-val{font-weight:500;}
+.info-val.green{color:var(--green);}
+.info-val.gold{color:var(--gold);}
+.info-val.arc{color:var(--arc);}
+.info-val.mono{font-family:'Geist Mono',monospace;font-size:.75rem;}
+
+/* ─── PAGE HEADER ─── */
+.page-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding-bottom:18px;
+}
+.back-btn{
+  width:32px;height:32px;
+  border:1px solid var(--line2);border-radius:var(--radius-sm);
+  background:transparent;color:var(--txt2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;flex-shrink:0;
+}
+.back-btn:hover{border-color:var(--line3);color:var(--txt);}
+.back-btn svg{width:14px;height:14px;}
+.page-title{font-size:1rem;font-weight:700;letter-spacing:-.02em;}
+
+/* ─── TX ITEM ─── */
+.tx-item{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 0;border-bottom:1px solid var(--line);
+}
+.tx-item:last-child{border-bottom:none;}
+.tx-icon{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--bg3);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.tx-icon svg{width:15px;height:15px;color:var(--txt3);}
+.tx-body{flex:1;min-width:0;}
+.tx-type{font-size:.84rem;font-weight:600;}
+.tx-detail{font-size:.65rem;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-right{text-align:right;flex-shrink:0;}
+.tx-amt{font-size:.82rem;font-weight:600;font-family:'Geist Mono',monospace;}
+.tx-amt.neg{color:var(--red);}
+.tx-amt.pos{color:var(--green);}
+.tx-time{font-size:.6rem;color:var(--txt3);margin-top:2px;}
+
+/* ─── POINTS ─── */
+.points-hero{
+  text-align:center;padding:20px 0 16px;
+}
+.ph-num{font-size:2.4rem;font-weight:700;letter-spacing:-.04em;color:var(--gold);line-height:1;}
+.ph-label{font-size:.72rem;color:var(--txt3);margin-top:4px;}
+
+.point-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.point-item:last-child{border-bottom:none;}
+.pi-action{font-size:.84rem;font-weight:500;}
+.pi-pts{
+  font-family:'Geist Mono',monospace;font-size:.78rem;
+  font-weight:600;color:var(--gold);
+  background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);
+  border-radius:5px;padding:2px 8px;
+}
+
+/* ─── STREAK ─── */
+.streak-row{display:flex;gap:5px;margin:12px 0;}
+.streak-dot{
+  flex:1;height:7px;border-radius:3px;
+  background:var(--bg3);border:1px solid var(--line2);
+  transition:all .3s;
+}
+.streak-dot.done{background:var(--gold);border-color:var(--gold);}
+.streak-dot.today{background:var(--arc);border-color:var(--arc);}
+
+/* ─── HOME INFO ─── */
+.home-about{
+  background:var(--bg1);border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px;margin-bottom:16px;
+}
+.ha-title{font-size:.78rem;font-weight:700;margin-bottom:8px;color:var(--txt);}
+.ha-text{font-size:.78rem;color:var(--txt3);line-height:1.7;}
+.ha-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.ha-link{
+  font-size:.65rem;font-family:'Geist Mono',monospace;
+  color:var(--arc);text-decoration:none;
+  background:var(--bg2);border:1px solid var(--line2);
+  border-radius:5px;padding:3px 8px;
+  transition:border-color .15s;
+}
+.ha-link:hover{border-color:rgba(59,130,246,.3);}
+
+/* ─── STAKE ACTIVE ─── */
+.stake-active{
+  background:var(--bg1);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px;margin-bottom:14px;
+}
+.sa-head{font-size:.65rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+
+/* ─── CONNECT SCREEN ─── */
+.connect-screen{
+  padding:50px 18px;text-align:center;
+}
+.cs-title{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+.cs-sub{font-size:.84rem;color:var(--txt3);line-height:1.6;margin-bottom:24px;}
+
+/* ─── PROGRESS ─── */
+.progress-wrap{margin-top:6px;}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;background:var(--arc);border-radius:2px;transition:width .5s;}
+
+/* ─── TOAST ─── */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--bg2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);padding:11px 18px;
+  font-size:.78rem;font-weight:500;z-index:200;
+  opacity:0;transition:all .25s;
+  white-space:nowrap;max-width:320px;
+  pointer-events:none;text-align:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.s{border-color:rgba(34,197,94,.25);color:var(--green);}
+#toast.e{border-color:rgba(239,68,68,.25);color:var(--red);}
+#toast.i{border-color:rgba(59,130,246,.25);color:var(--arc);}
+
+/* ─── UTIL ─── */
+.mt8{margin-top:8px;}
+.mt12{margin-top:12px;}
+.mt16{margin-top:16px;}
+.mb8{margin-bottom:8px;}
+.empty{text-align:center;padding:24px 0;font-size:.82rem;color:var(--txt3);}
+
+/* SVG ICONS */
+.ico{display:flex;align-items:center;justify-content:center;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">Arc<span>Fi</span></span>
+      <span class="net-pill">Testnet</span>
+    </div>
+    <div class="topbar-right">
+      <!-- Wallet selector button -->
+      <button class="icon-btn" id="walletToggle" onclick="toggleWalletPanel()" title="Wallets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/>
+        </svg>
+      </button>
+      <!-- Hamburger -->
+      <button class="icon-btn" onclick="openSidebar()" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── WALLET PANEL ── -->
+  <div class="wallet-panel" id="walletPanel">
+    <div class="wallet-panel-head">
+      <span class="wallet-panel-title">Wallets</span>
+      <span style="font-size:.68rem;color:var(--txt3);">Auto-detected</span>
+    </div>
+    <div class="wallet-list" id="walletList">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- ── SCROLL AREA ── -->
+  <div class="scroll-area" id="scrollArea">
+
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <div id="home-disconnected" class="connect-screen">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:6px;color:var(--txt);">Welcome to ArcFi Mini</div>
+        <p class="cs-sub">A lightweight DeFi dashboard on Arc Testnet.<br>Connect your wallet to get started.</p>
+        <button class="btn" style="max-width:200px;margin:0 auto 12px;display:block;" onclick="toggleWalletPanel()">Connect Wallet</button>
+
+        <div class="home-about mt16">
+          <div class="ha-title">About This Project</div>
+          <div class="ha-text">ArcFi Mini is a demo DeFi dashboard built on Arc Testnet — powered by Circle's USDC infrastructure. I built this to explore Arc's ecosystem: stablecoin payments, swaps, staking, and daily check-ins — all in one clean interface. No real funds. All testnet.</div>
+          <div class="ha-links">
+            <a class="ha-link" href="https://www.arc.network/" target="_blank">arc.network</a>
+            <a class="ha-link" href="https://docs.arc.network/arc/concepts/welcome-to-arc" target="_blank">docs</a>
+            <a class="ha-link" href="https://testnet.arcscan.app/" target="_blank">explorer</a>
+            <a class="ha-link" href="https://faucet.circle.com/" target="_blank">faucet</a>
+            <a class="ha-link" href="https://developers.circle.com/" target="_blank">circle dev</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="home-connected" style="display:none;">
+        <!-- HERO -->
+        <div class="home-hero">
+          <div class="hh-label">Total Balance</div>
+          <div class="hh-balance" id="hh-bal">0.00</div>
+          <div class="hh-sub" id="hh-sub">USDC · Arc Testnet</div>
+          <div class="hh-addr" onclick="copyAddr()" id="hh-addr">
+            <div class="hh-addr-dot"></div>
+            <span id="hh-addr-txt">—</span>
+          </div>
+        </div>
+
+        <!-- SEND / RECEIVE -->
+        <div class="action-row">
+          <div class="ar-btn" onclick="nav('send')">
+            <div class="ar-btn-icon" style="background:rgba(59,130,246,.1);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </div>
+            <div class="ar-btn-label">Send</div>
+          </div>
+          <div class="ar-btn" onclick="nav('receive')">
+            <div class="ar-btn-icon" style="background:rgba(34,197,94,.1);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </div>
+            <div class="ar-btn-label">Receive</div>
+          </div>
+        </div>
+
+        <!-- ASSETS -->
+        <div class="sec">
+          <div class="sec-head">
+            <span class="sec-title">Assets</span>
+          </div>
+          <div>
+            <div class="asset-item">
+              <div class="asset-logo" style="color:#2775CA;">USDC</div>
+              <div class="asset-info">
+                <div class="asset-name">USDC</div>
+                <div class="asset-chain">Arc Testnet · Circle</div>
+              </div>
+              <div class="asset-right">
+                <div class="asset-bal" id="asset-usdc">0.00</div>
+                <div class="asset-usd" id="asset-usdc-usd">≈ $0.00</div>
+              </div>
+            </div>
+            <div class="asset-item">
+              <div class="asset-logo" style="color:#3B82F6;">ARC</div>
+              <div class="asset-info">
+                <div class="asset-name">ARC Token</div>
+                <div class="asset-chain">Arc Testnet</div>
+              </div>
+              <div class="asset-right">
+                <div class="asset-bal" id="asset-arc">0.00</div>
+                <div class="asset-usd" id="asset-arc-usd">≈ $0.00</div>
+              </div>
+            </div>
+            <div class="asset-item">
+              <div class="asset-logo" style="color:#22C55E;">tUSDC</div>
+              <div class="asset-info">
+                <div class="asset-name">tUSDC</div>
+                <div class="asset-chain">Staked · ArcFi</div>
+              </div>
+              <div class="asset-right">
+                <div class="asset-bal" id="asset-tusdc">0.00</div>
+                <div class="asset-usd" style="color:var(--green);font-size:.65rem;" id="asset-reward">+0.00 reward</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT -->
+        <div class="sec">
+          <div class="sec-head">
+            <span class="sec-title">Recent Activity</span>
+            <button class="sec-link" onclick="nav('history')">View all</button>
+          </div>
+          <div class="card"><div class="card-body" id="home-recent"><div class="empty">No activity yet</div></div></div>
+        </div>
+
+        <!-- ABOUT MINI -->
+        <div class="home-about">
+          <div class="ha-title">About ArcFi Mini</div>
+          <div class="ha-text">Built on Arc Testnet using Circle's USDC infrastructure. This dashboard lets you explore DeFi primitives: send, swap, stake, and earn — all on testnet. Real wallet integration, demo swaps and staking mechanics.</div>
+          <div class="ha-links">
+            <a class="ha-link" href="https://www.arc.network/" target="_blank">arc.network</a>
+            <a class="ha-link" href="https://docs.arc.network/arc/concepts/welcome-to-arc" target="_blank">docs</a>
+            <a class="ha-link" href="https://testnet.arcscan.app/" target="_blank">explorer</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEND PAGE -->
+    <div class="page" id="page-send">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Send</span>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Recipient Address</label>
+        <input class="f-input" type="text" id="send-addr" placeholder="0x...">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Amount</label>
+        <div class="f-row">
+          <input type="number" id="send-amt" placeholder="0.00" oninput="sendPreview()" min="0" step="0.01">
+          <span class="f-max" onclick="setMax('send-amt')">Max</span>
+          <span class="f-tag">USDC</span>
+        </div>
+      </div>
+      <div class="rate-box" id="send-preview" style="display:none;">
+        <div class="rate-row"><span class="rate-row-l">Amount</span><span class="rate-row-r" id="sp-amt">—</span></div>
+        <div class="rate-row"><span class="rate-row-l">Network</span><span class="rate-row-r">Arc Testnet</span></div>
+        <div class="rate-row"><span class="rate-row-l">Fee</span><span class="rate-row-r">~0.001 USDC</span></div>
+        <div class="rate-row"><span class="rate-row-l">To</span><span class="rate-row-r" id="sp-addr" style="font-size:.65rem;">—</span></div>
+      </div>
+      <button class="btn" onclick="doSend()">Send USDC</button>
+      <div style="text-align:center;margin-top:10px;font-size:.68rem;color:var(--txt3);">Real transaction on Arc Testnet</div>
+    </div>
+
+    <!-- RECEIVE PAGE -->
+    <div class="page" id="page-receive">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Receive</span>
+      </div>
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:.72rem;color:var(--txt3);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;">Your Address</div>
+        <div id="recv-addr-box" style="font-family:'Geist Mono',monospace;font-size:.72rem;color:var(--txt2);background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:14px;word-break:break-all;text-align:left;margin-bottom:14px;">—</div>
+        <button class="btn" onclick="copyAddr()">Copy Address</button>
+      </div>
+      <div class="rate-box" style="margin-top:8px;">
+        <div class="rate-row"><span class="rate-row-l">Network</span><span class="rate-row-r">Arc Testnet</span></div>
+        <div class="rate-row"><span class="rate-row-l">Token</span><span class="rate-row-r">USDC (Circle)</span></div>
+        <div class="rate-row"><span class="rate-row-l">Chain ID</span><span class="rate-row-r">1322</span></div>
+      </div>
+    </div>
+
+    <!-- SWAP PAGE -->
+    <div class="page" id="page-swap">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Swap</span>
+      </div>
+      <div class="f-group">
+        <label class="f-label">From</label>
+        <div class="f-row">
+          <input type="number" id="swap-in" placeholder="0.00" oninput="calcSwap()" min="0" step="0.01">
+          <span class="f-max" onclick="setMax('swap-in')">Max</span>
+          <span class="f-tag">USDC</span>
+        </div>
+      </div>
+      <div class="swap-div">↓</div>
+      <div class="f-group">
+        <label class="f-label">To</label>
+        <select class="f-select" id="swap-to" onchange="calcSwap()">
+          <option value="ARC">ARC Token — 1 USDC = 2 ARC</option>
+          <option value="USDT">USDT — 1 USDC = 1 USDT (stable)</option>
+          <option value="ETH">ETH — Market Rate</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">You Receive</label>
+        <div class="f-row" style="opacity:.7;">
+          <input type="number" id="swap-out" placeholder="0.00" readonly>
+          <span class="f-tag" id="swap-out-tag">ARC</span>
+        </div>
+      </div>
+      <div class="rate-box" id="swap-rate">
+        <div class="rate-row"><span class="rate-row-l">Rate</span><span class="rate-row-r" id="sr-rate">1 USDC = 2 ARC</span></div>
+        <div class="rate-row"><span class="rate-row-l">Slippage</span><span class="rate-row-r">0%</span></div>
+        <div class="rate-row"><span class="rate-row-l">Type</span><span class="rate-row-r" style="color:var(--txt3);">Demo</span></div>
+      </div>
+      <button class="btn" onclick="doSwap()">Swap</button>
+    </div>
+
+    <!-- BRIDGE PAGE -->
+    <div class="page" id="page-bridge">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Bridge</span>
+      </div>
+      <div class="f-group">
+        <label class="f-label">From Network</label>
+        <select class="f-select" id="bridge-from">
+          <option>Ethereum Mainnet</option>
+          <option>Base</option>
+          <option>Optimism</option>
+          <option>Arbitrum</option>
+          <option>Polygon</option>
+        </select>
+      </div>
+      <div class="swap-div">↓</div>
+      <div class="f-group">
+        <label class="f-label">To Network</label>
+        <div class="f-row" style="opacity:.6;pointer-events:none;">
+          <input type="text" value="Arc Testnet" readonly>
+          <span class="f-tag">ARC</span>
+        </div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Token</label>
+        <select class="f-select">
+          <option>USDC</option>
+          <option>ETH</option>
+          <option>USDT</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Amount</label>
+        <div class="f-row">
+          <input type="number" id="bridge-amt" placeholder="0.00">
+          <span class="f-tag">USDC</span>
+        </div>
+      </div>
+      <div class="rate-box">
+        <div class="rate-row"><span class="rate-row-l">Bridge Fee</span><span class="rate-row-r">~0.001 ETH</span></div>
+        <div class="rate-row"><span class="rate-row-l">Est. Time</span><span class="rate-row-r">~2 min</span></div>
+        <div class="rate-row"><span class="rate-row-l">Protocol</span><span class="rate-row-r">Circle CCTP</span></div>
+      </div>
+      <button class="btn" onclick="doBridge()">Bridge to Arc Testnet</button>
+    </div>
+
+    <!-- STAKING PAGE -->
+    <div class="page" id="page-staking">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Staking</span>
+      </div>
+
+      <div class="rate-box" style="margin-bottom:14px;">
+        <div class="rate-row"><span class="rate-row-l">Protocol</span><span class="rate-row-r">ArcFi Staking</span></div>
+        <div class="rate-row"><span class="rate-row-l">APY</span><span class="rate-row-r" style="color:var(--green);">5%</span></div>
+        <div class="rate-row"><span class="rate-row-l">Receive</span><span class="rate-row-r">tUSDC (1:1)</span></div>
+        <div class="rate-row"><span class="rate-row-l">Unstake</span><span class="rate-row-r">Instant</span></div>
+      </div>
+
+      <div class="stake-active" id="stake-active-box" style="display:none;">
+        <div class="sa-head">Active Position</div>
+        <div class="info-row"><span class="info-label">Staked (tUSDC)</span><span class="info-val" id="st-staked">0.00</span></div>
+        <div class="info-row"><span class="info-label">Earned Reward</span><span class="info-val green" id="st-reward">+0.00 USDC</span></div>
+        <div class="progress-wrap">
+          <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--txt3);"><span>Reward</span><span id="st-pct">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="st-bar" style="width:0%"></div></div>
+        </div>
+        <button class="btn red mt12" onclick="doUnstake()">Unstake + Claim</button>
+      </div>
+
+      <div class="f-group">
+        <label class="f-label">Stake Amount (USDC)</label>
+        <div class="f-row">
+          <input type="number" id="stake-amt" placeholder="0.00" oninput="calcStake()" min="0" step="0.01">
+          <span class="f-max" onclick="setMax('stake-amt')">Max</span>
+          <span class="f-tag">USDC</span>
+        </div>
+      </div>
+      <div class="rate-box">
+        <div class="rate-row"><span class="rate-row-l">You Stake</span><span class="rate-row-r" id="stake-prev-in">0.00 USDC</span></div>
+        <div class="rate-row"><span class="rate-row-l">You Receive</span><span class="rate-row-r" id="stake-prev-out">0.00 tUSDC</span></div>
+        <div class="rate-row"><span class="rate-row-l">Reward (5%)</span><span class="rate-row-r" style="color:var(--green);" id="stake-prev-reward">+0.00 USDC</span></div>
+      </div>
+      <button class="btn green" onclick="doStake()">Stake USDC</button>
+    </div>
+
+    <!-- DAILY CHECK PAGE -->
+    <div class="page" id="page-checkin">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Daily Check</span>
+      </div>
+
+      <div style="text-align:center;padding:16px 0 20px;">
+        <div style="font-size:.68rem;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Current Streak</div>
+        <div style="font-size:2.8rem;font-weight:700;letter-spacing:-.04em;" id="ci-streak">0</div>
+        <div style="font-size:.75rem;color:var(--txt3);">days</div>
+      </div>
+
+      <div class="streak-row" id="ci-dots">
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+      </div>
+
+      <div class="card mt12">
+        <div class="card-body">
+          <div class="info-row"><span class="info-label">Total Points</span><span class="info-val gold" id="ci-pts">0</span></div>
+          <div class="info-row"><span class="info-label">Today's Reward</span><span class="info-val" id="ci-today-pts">+50 pts</span></div>
+          <div class="info-row"><span class="info-label">Streak Bonus</span><span class="info-val" id="ci-bonus">—</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span class="info-val" id="ci-status" style="color:var(--green);">Ready</span></div>
+        </div>
+      </div>
+
+      <div class="rate-box mt8">
+        <div class="rate-row"><span class="rate-row-l">Day 1–3</span><span class="rate-row-r">+50 pts</span></div>
+        <div class="rate-row"><span class="rate-row-l">Day 4–6</span><span class="rate-row-r" style="color:var(--gold);">+100 pts</span></div>
+        <div class="rate-row"><span class="rate-row-l">Day 7+</span><span class="rate-row-r" style="color:var(--green);">+200 pts</span></div>
+      </div>
+
+      <button class="btn mt8" id="ci-btn" onclick="doCheckin()">Claim Daily Reward</button>
+      <div style="text-align:center;margin-top:8px;font-size:.68rem;color:var(--txt3);" id="ci-next"></div>
+    </div>
+
+    <!-- POINTS PAGE -->
+    <div class="page" id="page-points">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">Points</span>
+      </div>
+
+      <div class="points-hero">
+        <div class="ph-num" id="pts-total">0</div>
+        <div class="ph-label">Total Points Earned</div>
+      </div>
+
+      <div class="sec-title mb8">Points Breakdown</div>
+      <div class="card">
+        <div class="card-body" id="pts-breakdown">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <div class="sec-title mb8 mt16">How to Earn</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="point-item"><span class="pi-action">Daily Check-in</span><span class="pi-pts">+50 pts</span></div>
+          <div class="point-item"><span class="pi-action">Send USDC</span><span class="pi-pts">+20 pts</span></div>
+          <div class="point-item"><span class="pi-action">Swap Tokens</span><span class="pi-pts">+30 pts</span></div>
+          <div class="point-item"><span class="pi-action">Stake USDC</span><span class="pi-pts">+50 pts</span></div>
+          <div class="point-item"><span class="pi-action">Unstake</span><span class="pi-pts">+10 pts</span></div>
+          <div class="point-item"><span class="pi-action">Bridge</span><span class="pi-pts">+40 pts</span></div>
+          <div class="point-item"><span class="pi-action">7-Day Streak</span><span class="pi-pts">+500 pts</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="page-hdr">
+        <button class="back-btn" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="page-title">History</span>
+      </div>
+      <div class="card"><div class="card-body" id="history-list"><div class="empty">No transactions yet</div></div></div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- ── SIDEBAR OVERLAY ── -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-head-title">Menu</span>
+      <button class="sidebar-close" onclick="closeSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-body">
+
+      <div class="s-section">
+        <div class="s-section-label">Navigation</div>
+        <button class="s-item active" id="si-home" onclick="sideNav('home')">
+          <div class="s-item-dot"></div>
+          Dashboard
+        </button>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-section-label">Actions</div>
+        <button class="s-item" id="si-faucet" onclick="openFaucet()">
+          <div class="s-item-dot"></div>
+          Claim Faucet
+          <span class="s-item-ext">↗</span>
+        </button>
+        <button class="s-item" id="si-swap" onclick="sideNav('swap')">
+          <div class="s-item-dot"></div>
+          Swap
+        </button>
+        <button class="s-item" id="si-bridge" onclick="sideNav('bridge')">
+          <div class="s-item-dot"></div>
+          Bridge
+        </button>
+        <button class="s-item" id="si-staking" onclick="sideNav('staking')">
+          <div class="s-item-dot"></div>
+          Staking
+        </button>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-section-label">Earn</div>
+        <button class="s-item" id="si-checkin" onclick="sideNav('checkin')">
+          <div class="s-item-dot"></div>
+          Daily Check
+        </button>
+        <button class="s-item" id="si-points" onclick="sideNav('points')">
+          <div class="s-item-dot"></div>
+          Points
+        </button>
+      </div>
+
+      <div class="s-divider"></div>
+
+      <div class="s-section">
+        <div class="s-section-label">More</div>
+        <button class="s-item" id="si-history" onclick="sideNav('history')">
+          <div class="s-item-dot"></div>
+          History
+        </button>
+        <button class="s-item" onclick="openExplorer()">
+          <div class="s-item-dot"></div>
+          Arc Explorer
+          <span class="s-item-ext">↗</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+const S = {
+  connected: false,
+  address: '',
+  walletType: '',
+  usdc: 0,
+  arc: 0,
+  tusdc: 0,
+  reward: 0,
+  points: 0,
+  streak: 0,
+  lastCheckin: null,
+  txs: [],
+  pts_breakdown: {
+    checkin: 0, send: 0, swap: 0, stake: 0, unstake: 0, bridge: 0
+  }
+};
+
+const ETH_RATE = 0.0004; // 1 USDC = 0.0004 ETH (demo rate)
+const USDC_ADDR = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
+
+const ARC_CHAIN = {
+  chainId: '0x52A',
+  chainName: 'Arc Testnet',
+  nativeCurrency: { name: 'ARC', symbol: 'ARC', decimals: 18 },
+  rpcUrls: ['https://rpc.arc.testnet.network'],
+  blockExplorerUrls: ['https://testnet.arcscan.app']
+};
+
+// ════════════════════════════════
+//  WALLET DETECTION
+// ════════════════════════════════
+const WALLETS = [
+  {
+    id: 'metamask',
+    name: 'MetaMask',
+    abbr: 'MM',
+    detect: () => !!(window.ethereum?.isMetaMask && !window.ethereum?.isRabby),
+    connect: connectEIP1193
+  },
+  {
+    id: 'rabby',
+    name: 'Rabby',
+    abbr: 'RB',
+    detect: () => !!(window.ethereum?.isRabby),
+    connect: connectEIP1193
+  },
+  {
+    id: 'zerion',
+    name: 'Zerion',
+    abbr: 'ZR',
+    detect: () => !!(window.zerionWallet || window.ethereum?.isZerion),
+    connect: connectEIP1193
+  },
+  {
+    id: 'coinbase',
+    name: 'Coinbase Wallet',
+    abbr: 'CB',
+    detect: () => !!(window.ethereum?.isCoinbaseWallet),
+    connect: connectEIP1193
+  },
+  {
+    id: 'trust',
+    name: 'Trust Wallet',
+    abbr: 'TW',
+    detect: () => !!(window.ethereum?.isTrust || window.trustwallet),
+    connect: connectEIP1193
+  }
+];
+
+function buildWalletList() {
+  const list = document.getElementById('walletList');
+  let html = '';
+  let anyDetected = false;
+
+  WALLETS.forEach(w => {
+    const detected = w.detect();
+    if (detected) anyDetected = true;
+    const isActive = S.connected && S.walletType === w.id;
+
+    html += `<div class="wallet-item ${isActive ? 'active' : ''}" onclick="connectWallet('${w.id}')">
+      <div class="wallet-logo" style="${detected ? 'border-color:rgba(34,197,94,.2);color:var(--green);' : ''}">${w.abbr}</div>
+      <div class="wallet-info">
+        <div class="wallet-name">${w.name}</div>
+        <div class="wallet-status">${detected ? 'Detected' : 'Not installed'}</div>
+      </div>
+      <span class="wallet-badge ${detected ? 'detected' : ''} ${isActive ? 'active' : ''}">
+        ${isActive ? 'Connected' : detected ? 'Available' : 'Install'}
+      </span>
+    </div>`;
+  });
+
+  if (!anyDetected) {
+    html = `<div style="padding:16px 10px;font-size:.78rem;color:var(--txt3);text-align:center;">No wallets detected.<br>Install MetaMask, Rabby, or Zerion.</div>` + html;
+  }
+
+  list.innerHTML = html;
+}
+
+// ════════════════════════════════
+//  CONNECT
+// ════════════════════════════════
+let walletPanelOpen = false;
+
+function toggleWalletPanel() {
+  walletPanelOpen = !walletPanelOpen;
+  const panel = document.getElementById('walletPanel');
+  if (walletPanelOpen) {
+    buildWalletList();
+    panel.classList.add('open');
+    document.getElementById('scrollArea').addEventListener('click', closeWalletPanel, { once: true });
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function closeWalletPanel() {
+  walletPanelOpen = false;
+  document.getElementById('walletPanel').classList.remove('open');
+}
+
+async function connectWallet(id) {
+  const w = WALLETS.find(x => x.id === id);
+  if (!w) return;
+  if (!w.detect()) {
+    toast('Wallet not detected. Please install ' + w.name, 'e');
+    return;
+  }
+  closeWalletPanel();
+  await w.connect(w.id);
+}
+
+async function connectEIP1193(walletId) {
+  if (!window.ethereum) {
+    toast('No wallet found', 'e'); return;
+  }
+  try {
+    toast('Connecting...', 'i');
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    // Try adding Arc Testnet
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN.chainId }] });
+    } catch(e) {
+      if (e.code === 4902) {
+        try { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [ARC_CHAIN] }); } catch(_) {}
+      }
+    }
+
+    S.connected = true;
+    S.address = accounts[0];
+    S.walletType = walletId;
+    onConnected();
+    await fetchBalance();
+
+    window.ethereum.on('accountsChanged', accs => {
+      if (!accs.length) disconnectWallet();
+      else { S.address = accs[0]; onConnected(); fetchBalance(); }
+    });
+
+  } catch(e) {
+    if (e.code === 4001) toast('Rejected', 'e');
+    else toast('Connection failed', 'e');
+  }
+}
+
+function onConnected() {
+  document.getElementById('home-disconnected').style.display = 'none';
+  document.getElementById('home-connected').style.display = 'block';
+  document.getElementById('hh-addr-txt').textContent = shortAddr(S.address);
+  document.getElementById('recv-addr-box').textContent = S.address;
+  buildWalletList();
+  updateUI();
+  toast('Connected — ' + shortAddr(S.address), 's');
+}
+
+function disconnectWallet() {
+  S.connected = false; S.address = ''; S.walletType = '';
+  document.getElementById('home-disconnected').style.display = 'block';
+  document.getElementById('home-connected').style.display = 'none';
+  nav('home');
+}
+
+// ════════════════════════════════
+//  FETCH BALANCE
+// ════════════════════════════════
+async function fetchBalance() {
+  if (!S.connected || !window.ethereum) return;
+  try {
+    const data = '0x70a08231' + S.address.slice(2).padStart(64, '0');
+    const res = await window.ethereum.request({ method: 'eth_call', params: [{ to: USDC_ADDR, data }, 'latest'] });
+    if (res && res !== '0x') S.usdc = Number(BigInt(res)) / 1e6;
+    else if (S.usdc === 0) S.usdc = 100; // demo fallback
+  } catch { if (S.usdc === 0) S.usdc = 100; }
+  updateUI();
+}
+
+// ════════════════════════════════
+//  SEND
+// ════════════════════════════════
+function sendPreview() {
+  const amt = parseFloat(document.getElementById('send-amt').value) || 0;
+  const addr = document.getElementById('send-addr').value.trim();
+  const box = document.getElementById('send-preview');
+  if (amt > 0) {
+    box.style.display = 'block';
+    document.getElementById('sp-amt').textContent = amt.toFixed(2) + ' USDC';
+    document.getElementById('sp-addr').textContent = addr ? shortAddr(addr) : '—';
+  } else { box.style.display = 'none'; }
+}
+
+async function doSend() {
+  if (!S.connected) { toast('Connect wallet first', 'e'); return; }
+  const to = document.getElementById('send-addr').value.trim();
+  const amt = parseFloat(document.getElementById('send-amt').value) || 0;
+  if (!to.startsWith('0x') || to.length !== 42) { toast('Invalid address', 'e'); return; }
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+  if (amt > S.usdc) { toast('Insufficient balance', 'e'); return; }
+
+  try {
+    toast('Sending...', 'i');
+    const amtHex = BigInt(Math.floor(amt * 1e6)).toString(16).padStart(64, '0');
+    const toHex = to.slice(2).padStart(64, '0');
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: S.address, to: USDC_ADDR, data: '0xa9059cbb' + toHex + amtHex, gas: '0x15F90' }]
+    });
+    S.usdc -= amt;
+    addTx('Send', `To ${shortAddr(to)}`, -amt, 'USDC', txHash);
+    addPts('send', 20);
+    document.getElementById('send-addr').value = '';
+    document.getElementById('send-amt').value = '';
+    document.getElementById('send-preview').style.display = 'none';
+    updateUI(); toast('Sent ' + amt + ' USDC', 's');
+  } catch(e) {
+    if (e.code === 4001) toast('Rejected', 'e');
+    else toast('Error: ' + (e.message || ''), 'e');
+  }
+}
+
+// ════════════════════════════════
+//  SWAP
+// ════════════════════════════════
+function calcSwap() {
+  const amt = parseFloat(document.getElementById('swap-in').value) || 0;
+  const to = document.getElementById('swap-to').value;
+  let out = 0, rate = '';
+
+  if (to === 'ARC') { out = amt * 2; rate = '1 USDC = 2 ARC'; }
+  else if (to === 'USDT') { out = amt * 1; rate = '1 USDC = 1 USDT'; }
+  else if (to === 'ETH') { out = amt * ETH_RATE; rate = `1 USDC = ${ETH_RATE} ETH`; }
+
+  document.getElementById('swap-out').value = out > 0 ? out.toFixed(6) : '';
+  document.getElementById('swap-out-tag').textContent = to;
+  document.getElementById('sr-rate').textContent = rate;
+}
+
+function doSwap() {
+  if (!S.connected) { toast('Connect wallet first', 'e'); return; }
+  const amt = parseFloat(document.getElementById('swap-in').value) || 0;
+  const to = document.getElementById('swap-to').value;
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+  if (amt > S.usdc) { toast('Insufficient USDC', 'e'); return; }
+
+  let out = 0;
+  if (to === 'ARC') { out = amt * 2; S.arc += out; }
+  else if (to === 'USDT') { out = amt; }
+  else if (to === 'ETH') { out = +(amt * ETH_RATE).toFixed(6); }
+
+  S.usdc -= amt;
+  addTx('Swap', `${amt} USDC → ${out.toFixed(4)} ${to}`, -amt, 'USDC');
+  addPts('swap', 30);
+  document.getElementById('swap-in').value = '';
+  document.getElementById('swap-out').value = '';
+  updateUI(); toast(`Swapped to ${out.toFixed(4)} ${to}`, 's');
+}
+
+// ════════════════════════════════
+//  BRIDGE
+// ════════════════════════════════
+function doBridge() {
+  if (!S.connected) { toast('Connect wallet first', 'e'); return; }
+  const amt = parseFloat(document.getElementById('bridge-amt').value) || 0;
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+  S.usdc += amt;
+  addTx('Bridge', `Bridge → Arc Testnet`, +amt, 'USDC');
+  addPts('bridge', 40);
+  document.getElementById('bridge-amt').value = '';
+  updateUI(); toast('Bridge demo complete — +' + amt + ' USDC', 's');
+}
+
+// ════════════════════════════════
+//  STAKE
+// ════════════════════════════════
+function calcStake() {
+  const amt = parseFloat(document.getElementById('stake-amt').value) || 0;
+  const reward = +(amt * 0.05).toFixed(4);
+  document.getElementById('stake-prev-in').textContent = amt.toFixed(2) + ' USDC';
+  document.getElementById('stake-prev-out').textContent = amt.toFixed(2) + ' tUSDC';
+  document.getElementById('stake-prev-reward').textContent = '+' + reward + ' USDC';
+}
+
+function doStake() {
+  if (!S.connected) { toast('Connect wallet first', 'e'); return; }
+  const amt = parseFloat(document.getElementById('stake-amt').value) || 0;
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+  if (amt > S.usdc) { toast('Insufficient USDC', 'e'); return; }
+  S.usdc -= amt;
+  S.tusdc += amt;
+  S.reward = +(S.tusdc * 0.05).toFixed(4);
+  addTx('Stake', `${amt} USDC → tUSDC`, -amt, 'USDC');
+  addPts('stake', 50);
+  document.getElementById('stake-amt').value = '';
+  calcStake();
+  updateUI(); toast('Staked ' + amt + ' USDC → tUSDC', 's');
+}
+
+function doUnstake() {
+  if (S.tusdc <= 0) { toast('Nothing staked', 'e'); return; }
+  const total = S.tusdc + S.reward;
+  S.usdc += total;
+  addTx('Unstake', `tUSDC → ${total.toFixed(4)} USDC`, +total, 'USDC');
+  addPts('unstake', 10);
+  S.tusdc = 0; S.reward = 0;
+  updateUI(); toast('Unstaked — received ' + total.toFixed(4) + ' USDC', 's');
+}
+
+// ════════════════════════════════
+//  CHECK-IN
+// ════════════════════════════════
+function doCheckin() {
+  if (!S.connected) { toast('Connect wallet first', 'e'); return; }
+  const today = new Date().toDateString();
+  if (S.lastCheckin === today) { toast('Already checked in today', 'i'); return; }
+
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  S.streak = (S.lastCheckin === yesterday.toDateString()) ? S.streak + 1 : 1;
+  S.lastCheckin = today;
+
+  let pts = 50;
+  if (S.streak >= 7) { pts = 200; if (S.streak % 7 === 0) addPts('checkin', 500); }
+  else if (S.streak >= 4) pts = 100;
+
+  addPts('checkin', pts);
+  addTx('Check-in', `Day ${S.streak}`, pts, 'pts');
+  updateUI(); toast('Claimed +' + pts + ' pts · Day ' + S.streak, 's');
+}
+
+// ════════════════════════════════
+//  POINTS
+// ════════════════════════════════
+function addPts(cat, n) {
+  S.points += n;
+  S.pts_breakdown[cat] = (S.pts_breakdown[cat] || 0) + n;
+  renderPoints();
+}
+
+function renderPoints() {
+  document.getElementById('pts-total').textContent = S.points;
+  document.getElementById('ci-pts').textContent = S.points;
+
+  const labels = { checkin: 'Daily Check-in', send: 'Send USDC', swap: 'Swap Tokens', stake: 'Staking', unstake: 'Unstake', bridge: 'Bridge' };
+  let html = '';
+  Object.entries(S.pts_breakdown).forEach(([k, v]) => {
+    if (v > 0) html += `<div class="point-item"><span class="pi-action">${labels[k]||k}</span><span class="pi-pts">${v} pts</span></div>`;
+  });
+  document.getElementById('pts-breakdown').innerHTML = html || '<div class="empty">No points yet</div>';
+}
+
+// ════════════════════════════════
+//  TX HISTORY
+// ════════════════════════════════
+function addTx(type, detail, amt, token, hash = null) {
+  const tx = { type, detail, amt, token, hash, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+  S.txs.unshift(tx);
+  renderHistory();
+}
+
+function renderHistory() {
+  const txHtml = (tx) => {
+    const isNeg = tx.amt < 0;
+    const amtStr = (isNeg ? '' : '+') + Math.abs(tx.amt).toFixed(2) + ' ' + tx.token;
+    const icons = {
+      Send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
+      Swap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>`,
+      Stake: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12m0-10v10M4.93 4.93l5.66 5.66m8.48-5.66l-5.66 5.66"/></svg>`,
+      Unstake: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
+      Bridge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 12c0-4.4 3.6-8 8-8M21 12c0 4.4-3.6 8-8 8"/></svg>`,
+      'Check-in': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+    };
+    const explorerLink = tx.hash ? `<a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank" style="color:var(--arc);text-decoration:none;"> · View</a>` : '';
+    return `<div class="tx-item">
+      <div class="tx-icon">${icons[tx.type] || ''}</div>
+      <div class="tx-body">
+        <div class="tx-type">${tx.type}</div>
+        <div class="tx-detail">${tx.detail}${explorerLink}</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amt ${isNeg ? 'neg' : 'pos'}">${amtStr}</div>
+        <div class="tx-time">${tx.time}</div>
+      </div>
+    </div>`;
+  };
+
+  const full = document.getElementById('history-list');
+  const recent = document.getElementById('home-recent');
+  if (S.txs.length === 0) {
+    const e = '<div class="empty">No transactions yet</div>';
+    full.innerHTML = e; recent.innerHTML = e; return;
+  }
+  full.innerHTML = S.txs.map(txHtml).join('');
+  recent.innerHTML = S.txs.slice(0, 3).map(txHtml).join('');
+}
+
+// ════════════════════════════════
+//  UI UPDATE
+// ════════════════════════════════
+function updateUI() {
+  // Balances
+  document.getElementById('hh-bal').textContent = S.usdc.toFixed(2);
+  document.getElementById('hh-sub').textContent = 'USDC · Arc Testnet';
+  document.getElementById('asset-usdc').textContent = S.usdc.toFixed(2);
+  document.getElementById('asset-usdc-usd').textContent = '≈ $' + S.usdc.toFixed(2);
+  document.getElementById('asset-arc').textContent = S.arc.toFixed(2);
+  document.getElementById('asset-arc-usd').textContent = '≈ $' + (S.arc * 0.5).toFixed(2);
+  document.getElementById('asset-tusdc').textContent = S.tusdc.toFixed(2);
+  document.getElementById('asset-reward').textContent = '+' + S.reward.toFixed(4) + ' reward';
+
+  // Stake page
+  if (S.tusdc > 0) {
+    document.getElementById('stake-active-box').style.display = 'block';
+    document.getElementById('st-staked').textContent = S.tusdc.toFixed(2);
+    document.getElementById('st-reward').textContent = '+' + S.reward.toFixed(4) + ' USDC';
+    const pct = Math.min(100, S.reward > 0 ? (S.reward / (S.tusdc * 0.05)) * 100 : 0);
+    document.getElementById('st-bar').style.width = pct + '%';
+    document.getElementById('st-pct').textContent = pct.toFixed(0) + '%';
+  } else {
+    document.getElementById('stake-active-box').style.display = 'none';
+  }
+
+  // Check-in page
+  const today = new Date().toDateString();
+  const done = S.lastCheckin === today;
+  document.getElementById('ci-streak').textContent = S.streak;
+  document.getElementById('ci-status').textContent = done ? 'Claimed' : 'Ready';
+  document.getElementById('ci-status').style.color = done ? 'var(--txt3)' : 'var(--green)';
+  document.getElementById('ci-next').textContent = done ? 'Next reward available tomorrow' : '';
+  document.getElementById('ci-bonus').textContent = S.streak >= 7 ? '+500 pts bonus!' : S.streak >= 4 ? '+100 pts/day' : '—';
+  const ciBtn = document.getElementById('ci-btn');
+  ciBtn.textContent = done ? 'Claimed Today' : 'Claim Daily Reward';
+  ciBtn.disabled = done || !S.connected;
+
+  // Streak dots
+  document.querySelectorAll('.streak-dot').forEach((d, i) => {
+    d.classList.remove('done', 'today');
+    if (i < S.streak - 1) d.classList.add('done');
+    else if (i === S.streak - 1 && done) d.classList.add('today');
+  });
+
+  // Points
+  document.getElementById('pts-total').textContent = S.points;
+  renderPoints();
+}
+
+// ════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════
+let currentPage = 'home';
+
+function nav(id) {
+  if (!S.connected && id !== 'home') { toast('Connect wallet first', 'e'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('scrollArea').scrollTop = 0;
+  currentPage = id;
+}
+
+function sideNav(id) {
+  closeSidebar();
+  setTimeout(() => nav(id), 180);
+  // update sidebar active
+  document.querySelectorAll('.s-item').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('si-' + id);
+  if (target) target.classList.add('active');
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function openFaucet() { closeSidebar(); window.open('https://faucet.circle.com/', '_blank'); }
+function openExplorer() { closeSidebar(); window.open('https://testnet.arcscan.app/', '_blank'); }
+
+// ════════════════════════════════
+//  HELPERS
+// ════════════════════════════════
+function setMax(id) {
+  const map = { 'send-amt': S.usdc, 'swap-in': S.usdc, 'stake-amt': S.usdc };
+  document.getElementById(id).value = (map[id] || 0).toFixed(2);
+  if (id === 'swap-in') calcSwap();
+  if (id === 'stake-amt') calcStake();
+}
+
+function copyAddr() {
+  if (!S.address) return;
+  navigator.clipboard.writeText(S.address).then(() => toast('Address copied', 's')).catch(() => toast('Copy failed', 'e'));
+}
+
+function shortAddr(a) {
+  if (!a || a.length < 10) return a;
+  return a.slice(0, 6) + '...' + a.slice(-4);
+}
+
+let toastT;
+function toast(msg, type = 'i') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// Close wallet panel on outside click
+document.getElementById('scrollArea').addEventListener('click', () => {
+  if (walletPanelOpen) closeWalletPanel();
+});
+
+// Init
+buildWalletList();
+renderHistory();
+</script>
+</body>
+</html>
