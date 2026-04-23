@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ArcFi Mini</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0A0B0F;--bg1:#111318;--bg2:#16181F;--bg3:#1C1F28;--bg4:#22262F;
+  --border:#FFFFFF0C;--border2:#FFFFFF14;--border3:#FFFFFF1F;
+  --txt:#E8EBF2;--txt2:#7A8499;--txt3:#3D4455;
+  --blue:#3B7EF6;--blue-dim:rgba(59,126,246,.12);
+  --green:#1DB966;--green-dim:rgba(29,185,102,.1);
+  --red:#E5484D;--red-dim:rgba(229,72,77,.1);
+  --gold:#E8A219;--gold-dim:rgba(232,162,25,.1);
+  --usdc:#2775CA;
+  --r:12px;--rs:8px;
+}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;}
+body{background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;}
+
+/* LAYOUT */
+.app{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;position:relative;overflow:hidden;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border);background:var(--bg);z-index:20;flex-shrink:0;}
+.logo{font-size:.95rem;font-weight:700;letter-spacing:-.03em;color:var(--txt);}
+.logo em{color:var(--blue);font-style:normal;}
+.net-tag{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--txt3);background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:2px 5px;text-transform:uppercase;letter-spacing:.06em;}
+.top-r{display:flex;align-items:center;gap:6px;}
+.w-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border2);border-radius:16px;background:transparent;color:var(--txt2);cursor:pointer;font-size:.72rem;font-weight:500;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;max-width:130px;}
+.w-btn:hover{border-color:var(--blue);color:var(--blue);}
+.w-btn.on{border-color:rgba(29,185,102,.35);color:var(--green);}
+.wdot{width:5px;height:5px;border-radius:50%;background:var(--txt3);flex-shrink:0;transition:background .2s;}
+.wdot.live{background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.menu-btn{width:32px;height:32px;border:1px solid var(--border2);border-radius:var(--rs);background:transparent;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.menu-btn svg{width:14px;height:14px;}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* PAGE */
+.page{display:none;padding:14px 14px 72px;animation:fadeUp .18s ease;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* OVERLAY + DRAWER */
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ov.open{opacity:1;pointer-events:all;}
+.drawer{position:absolute;right:0;top:0;bottom:0;width:240px;background:var(--bg1);border-left:1px solid var(--border2);z-index:50;transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.drawer.open{transform:translateX(0);}
+.dr-hd{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.dr-t{font-size:.62rem;font-weight:600;color:var(--txt3);letter-spacing:.09em;text-transform:uppercase;}
+.dr-close{width:24px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dr-close svg{width:12px;height:12px;}
+.dr-body{flex:1;overflow-y:auto;padding:4px 0;}
+.dr-body::-webkit-scrollbar{display:none;}
+.dr-lbl{font-size:.56rem;font-weight:600;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;padding:9px 14px 3px;}
+.dr-item{display:flex;align-items:center;padding:9px 14px;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;color:var(--txt2);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;gap:8px;transition:background .1s;}
+.dr-item:hover{background:var(--bg2);color:var(--txt);}
+.dr-item.active{color:var(--blue);}
+.dr-dot{width:4px;height:4px;border-radius:50%;background:var(--border3);flex-shrink:0;}
+.dr-item.active .dr-dot{background:var(--blue);}
+.dr-ext{margin-left:auto;font-size:.56rem;color:var(--txt3);}
+.dr-sep{height:1px;background:var(--border);margin:4px 14px;}
+
+/* MODAL */
+.modal-wrap{position:absolute;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0;transition:opacity .18s;}
+.modal-wrap.open{pointer-events:all;opacity:1;}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.75);}
+.modal{position:relative;width:100%;max-width:430px;background:var(--bg1);border:1px solid var(--border2);border-radius:18px 18px 0 0;padding:16px 14px 30px;animation:slideUp .2s ease;max-height:88vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(32px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.m-handle{width:32px;height:3px;background:var(--border3);border-radius:2px;margin:0 auto 13px;}
+.m-title{font-size:.9rem;font-weight:700;margin-bottom:2px;color:var(--txt);}
+.m-sub{font-size:.7rem;color:var(--txt3);margin-bottom:13px;}
+
+/* WALLET ITEMS */
+.w-item{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:var(--rs);cursor:pointer;border:1px solid transparent;transition:all .12s;}
+.w-item:hover{background:var(--bg2);}
+.w-item.connected{background:var(--bg2);border-color:rgba(29,185,102,.2);}
+.w-logo{width:38px;height:38px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.68rem;font-family:'JetBrains Mono',monospace;flex-shrink:0;border:1px solid var(--border2);}
+.w-name{font-size:.83rem;font-weight:600;color:var(--txt);}
+.w-st{font-size:.64rem;color:var(--txt3);margin-top:1px;}
+.w-tag{font-size:.56rem;font-family:'JetBrains Mono',monospace;border-radius:3px;padding:2px 5px;border:1px solid var(--border2);background:var(--bg3);color:var(--txt3);}
+.w-tag.ok{color:var(--green);border-color:rgba(29,185,102,.2);background:rgba(29,185,102,.05);}
+.w-tag.on{color:var(--blue);border-color:rgba(59,126,246,.2);background:rgba(59,126,246,.05);}
+
+/* CARDS / FORMS */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;}
+.cb{padding:14px;}
+.sec-t{font-size:.58rem;font-weight:600;color:var(--txt3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px;}
+.fg{margin-bottom:11px;}
+.fl{font-size:.58rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 11px;color:var(--txt);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:var(--blue);}
+.fi::placeholder{color:var(--txt3);}
+.fi-row{display:flex;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);overflow:hidden;transition:border-color .15s;}
+.fi-row:focus-within{border-color:var(--blue);}
+.fi-row input{flex:1;background:transparent;border:none;padding:10px 11px;color:var(--txt);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;min-width:0;}
+.fi-row input::placeholder{color:var(--txt3);}
+.fi-tag{padding:0 10px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--txt3);border-left:1px solid var(--border2);white-space:nowrap;}
+.fi-max{padding:0 9px;display:flex;align-items:center;font-size:.64rem;font-weight:600;color:var(--blue);cursor:pointer;border-left:1px solid var(--border2);}
+.fsel{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 11px;color:var(--txt);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%233D4455' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.fsel option{background:var(--bg2);}
+
+/* INFO BOX */
+.ibox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 11px;margin-bottom:11px;}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:.75rem;}
+.ir:not(:last-child){border-bottom:1px solid var(--border);}
+.il{color:var(--txt3);}
+.iv{font-weight:500;color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:.72rem;}
+.iv.g{color:var(--green);}
+.iv.b{color:var(--blue);}
+.iv.gold{color:var(--gold);}
+.iv.r{color:var(--red);}
+
+/* NOTICE */
+.notice{border-radius:var(--rs);padding:9px 11px;margin-bottom:11px;font-size:.7rem;line-height:1.5;}
+.notice.blue{background:var(--blue-dim);border:1px solid rgba(59,126,246,.2);color:#6BA3FF;}
+.notice.green{background:var(--green-dim);border:1px solid rgba(29,185,102,.2);color:#3DD68C;}
+.notice.gold{background:var(--gold-dim);border:1px solid rgba(232,162,25,.2);color:#F0B429;}
+
+/* BUTTONS */
+.btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.01em;}
+.btn:hover:not(:disabled){filter:brightness(1.1);}
+.btn:active:not(:disabled){transform:scale(.99);}
+.btn:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+.btn.grn{background:var(--green);color:#041209;}
+.btn.red{background:var(--red);}
+.btn.out{background:transparent;border:1px solid var(--border2);color:var(--txt2);}
+.btn.sm{width:auto;padding:7px 12px;font-size:.72rem;}
+
+/* PAGE HDR */
+.phdr{display:flex;align-items:center;gap:8px;padding-bottom:13px;}
+.bk{width:28px;height:28px;border:1px solid var(--border2);border-radius:var(--rs);background:transparent;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bk svg{width:12px;height:12px;}
+.pt{font-size:.92rem;font-weight:700;color:var(--txt);}
+.pt-sub{font-size:.62rem;color:var(--txt3);margin-left:auto;}
+
+/* HOME HERO */
+.hero{text-align:center;padding:18px 0 14px;}
+.h-lbl{font-size:.6rem;color:var(--txt3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px;}
+.h-bal{font-size:2.4rem;font-weight:700;letter-spacing:-.04em;color:var(--txt);line-height:1;}
+.h-token{font-size:.7rem;color:var(--txt3);margin-top:4px;font-family:'JetBrains Mono',monospace;}
+.h-addr{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 10px;border:1px solid var(--border2);border-radius:14px;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--txt2);cursor:pointer;}
+.h-addr:hover{border-color:var(--border3);}
+
+/* ACTION GRID */
+.act-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;}
+.act-btn{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s;}
+.act-btn:hover{border-color:var(--border2);background:var(--bg2);}
+.act-ico{width:30px;height:30px;border-radius:8px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;}
+.act-ico svg{width:15px;height:15px;}
+.act-lbl{font-size:.62rem;font-weight:600;color:var(--txt2);}
+
+/* ASSET */
+.asset{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+.asset:last-child{border-bottom:none;}
+.a-logo{width:34px;height:34px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;font-family:'JetBrains Mono',monospace;border:1px solid var(--border2);flex-shrink:0;}
+.a-name{font-size:.82rem;font-weight:600;color:var(--txt);}
+.a-chain{font-size:.6rem;color:var(--txt3);}
+.a-bal{font-size:.82rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--txt);}
+.a-usd{font-size:.6rem;color:var(--txt3);}
+
+/* TX */
+.tx-item{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);}
+.tx-item:last-child{border-bottom:none;}
+.tx-ico{width:30px;height:30px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tx-ico svg{width:12px;height:12px;color:var(--txt3);}
+.tx-type{font-size:.78rem;font-weight:600;color:var(--txt);}
+.tx-detail{font-size:.6rem;color:var(--txt3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-amt{font-size:.76rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.tx-amt.neg{color:var(--red);}
+.tx-amt.pos{color:var(--green);}
+.tx-time{font-size:.56rem;color:var(--txt3);margin-top:1px;}
+
+/* POINTS */
+.pts-big{text-align:center;padding:14px 0 10px;}
+.pts-num{font-size:2.4rem;font-weight:700;color:var(--gold);letter-spacing:-.04em;}
+.pts-lbl{font-size:.65rem;color:var(--txt3);margin-top:3px;}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
+.pi:last-child{border-bottom:none;}
+.pi-name{font-size:.78rem;font-weight:500;color:var(--txt);}
+.pi-val{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(232,162,25,.15);border-radius:3px;padding:2px 6px;}
+
+/* STREAK */
+.sk-row{display:flex;gap:4px;margin:9px 0;}
+.sk-d{flex:1;height:5px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);transition:all .25s;}
+.sk-d.done{background:var(--gold);border-color:var(--gold);}
+.sk-d.active{background:var(--blue);border-color:var(--blue);}
+
+/* SWAP ARROW */
+.sw-div{text-align:center;margin:3px 0;color:var(--txt3);font-size:.9rem;}
+
+/* LOADING */
+.loading{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:.58rem;font-weight:600;}
+.badge.sim{background:var(--gold-dim);border:1px solid rgba(232,162,25,.2);color:var(--gold);}
+.badge.real{background:var(--green-dim);border:1px solid rgba(29,185,102,.2);color:var(--green);}
+
+/* CONN SCREEN */
+.conn-sc{padding:36px 14px;text-align:center;}
+.conn-t{font-size:.96rem;font-weight:700;margin-bottom:6px;color:var(--txt);}
+.conn-p{font-size:.78rem;color:var(--txt3);line-height:1.6;margin-bottom:18px;max-width:280px;margin-left:auto;margin-right:auto;}
+
+/* DEPLOY */
+.deploy-anim{text-align:center;padding:16px;}
+.deploy-ico{font-size:2rem;margin-bottom:8px;}
+.deploy-t{font-size:.85rem;font-weight:600;color:var(--txt);margin-bottom:4px;}
+.deploy-p{font-size:.7rem;color:var(--txt3);}
+
+/* UTIL */
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.empty{text-align:center;padding:18px 0;font-size:.76rem;color:var(--txt3);}
+.mono{font-family:'JetBrains Mono',monospace;}
+.text-center{text-align:center;}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:9px 14px;font-size:.74rem;font-weight:500;z-index:999;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.6);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.s{border-color:rgba(29,185,102,.3);color:var(--green);}
+#toast.e{border-color:rgba(229,72,77,.3);color:var(--red);}
+#toast.i{border-color:rgba(59,126,246,.3);color:#6BA3FF;}
+#toast.w{border-color:rgba(232,162,25,.3);color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:7px;">
+    <span class="logo">Arc<em>Fi</em></span>
+    <span class="net-tag">Testnet</span>
+  </div>
+  <div class="top-r">
+    <button class="w-btn" id="wBtn" onclick="openWM()">
+      <div class="wdot" id="wDot"></div>
+      <span id="wTxt" style="overflow:hidden;text-overflow:ellipsis;">Connect</span>
+    </button>
+    <button class="menu-btn" onclick="openDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll" id="scrollArea">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div id="home-dis">
+      <div class="conn-sc">
+        <div class="conn-t">ArcFi Mini</div>
+        <p class="conn-p">A real DeFi interface on Arc Testnet. USDC is the native gas token. Connect your wallet to begin.</p>
+        <button class="btn" style="max-width:180px;margin:0 auto 12px;display:block;" onclick="openWM()">Connect Wallet</button>
+        <div style="font-size:.64rem;color:var(--txt3);">Arc Testnet · USDC Gas · Chain ID 1322</div>
+      </div>
+      <div class="card">
+        <div class="cb">
+          <div class="sec-t">About ArcFi Mini</div>
+          <div style="font-size:.74rem;color:var(--txt3);line-height:1.7;">Built on Arc Testnet. USDC is both the gas token and main asset. Real wallet transactions — all signed by you. Get test USDC from the Circle faucet to start.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;">
+            <a href="https://testnet.arcscan.app/" target="_blank" style="font-size:.6rem;font-family:'JetBrains Mono',monospace;color:var(--blue);text-decoration:none;background:var(--blue-dim);border:1px solid rgba(59,126,246,.2);border-radius:3px;padding:3px 7px;">Explorer ↗</a>
+            <a href="https://faucet.circle.com/" target="_blank" style="font-size:.6rem;font-family:'JetBrains Mono',monospace;color:var(--green);text-decoration:none;background:var(--green-dim);border:1px solid rgba(29,185,102,.2);border-radius:3px;padding:3px 7px;">Get Test USDC ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="home-con" style="display:none;">
+      <div class="hero">
+        <div class="h-lbl">USDC Balance</div>
+        <div class="h-bal" id="hBal">—</div>
+        <div class="h-token">USDC · Arc Testnet (Chain 1322)</div>
+        <div class="h-addr" onclick="copyAddr()" id="hAddr">
+          <div class="wdot live"></div>
+          <span id="hAddrTxt">—</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </div>
+      </div>
+
+      <div class="act-grid">
+        <div class="act-btn" onclick="nav('send')">
+          <div class="act-ico" style="background:rgba(59,126,246,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3B7EF6" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+          <div class="act-lbl">Send</div>
+        </div>
+        <div class="act-btn" onclick="nav('receive')">
+          <div class="act-ico" style="background:rgba(29,185,102,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1DB966" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+          </div>
+          <div class="act-lbl">Receive</div>
+        </div>
+        <div class="act-btn" onclick="nav('swap')">
+          <div class="act-ico" style="background:rgba(232,162,25,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#E8A219" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          </div>
+          <div class="act-lbl">Swap</div>
+        </div>
+        <div class="act-btn" onclick="nav('bridge')">
+          <div class="act-ico" style="background:rgba(229,72,77,.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div class="act-lbl">Bridge</div>
+        </div>
+      </div>
+
+      <!-- PORTFOLIO -->
+      <div class="sec-t">Portfolio</div>
+      <div class="card mb8">
+        <div class="cb" id="portfolio-list">
+          <div class="empty" id="port-loading"><span class="loading"></span>Loading balance...</div>
+        </div>
+      </div>
+
+      <!-- RECENT -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span class="sec-t" style="margin:0;">Recent Activity</span>
+        <button class="btn out sm" onclick="nav('history')">All →</button>
+      </div>
+      <div class="card">
+        <div class="cb" id="home-recent"><div class="empty">No activity yet</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEND -->
+  <div class="page" id="page-send">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Send USDC</span>
+      <span class="pt-sub badge real">Real TX</span>
+    </div>
+    <div class="notice blue">Transaction signed by your wallet. Gas fee paid in USDC on Arc Testnet.</div>
+    <div class="fg">
+      <label class="fl">Recipient Address</label>
+      <input class="fi" id="snd-to" type="text" placeholder="0x...">
+    </div>
+    <div class="fg">
+      <label class="fl">Amount (USDC)</label>
+      <div class="fi-row">
+        <input type="number" id="snd-amt" placeholder="0.00" oninput="updateSendPreview()" min="0" step="0.01">
+        <span class="fi-max" onclick="setSendMax()">MAX</span>
+        <span class="fi-tag">USDC</span>
+      </div>
+    </div>
+    <div class="ibox" id="snd-preview" style="display:none;">
+      <div class="ir"><span class="il">Amount</span><span class="iv" id="sp-amt">—</span></div>
+      <div class="ir"><span class="il">To</span><span class="iv" id="sp-to" style="font-size:.6rem;">—</span></div>
+      <div class="ir"><span class="il">Network</span><span class="iv">Arc Testnet</span></div>
+      <div class="ir"><span class="il">Network Fee</span><span class="iv b">Paid in USDC</span></div>
+    </div>
+    <button class="btn" onclick="doSend()" id="sendBtn">Confirm Send</button>
+    <div style="text-align:center;margin-top:8px;font-size:.62rem;color:var(--txt3);">
+      Real transaction · <a href="https://testnet.arcscan.app/" target="_blank" style="color:var(--blue);">View on Explorer ↗</a>
+    </div>
+  </div>
+
+  <!-- RECEIVE -->
+  <div class="page" id="page-receive">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Receive USDC</span>
+    </div>
+    <div style="text-align:center;padding:14px 0;">
+      <div class="sec-t">Your Wallet Address</div>
+      <div id="rcv-addr" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--txt2);background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:13px;word-break:break-all;text-align:left;margin-bottom:11px;">—</div>
+      <button class="btn" onclick="copyAddr()">Copy Address</button>
+    </div>
+    <div class="ibox">
+      <div class="ir"><span class="il">Network</span><span class="iv">Arc Testnet</span></div>
+      <div class="ir"><span class="il">Chain ID</span><span class="iv">1322 (0x52A)</span></div>
+      <div class="ir"><span class="il">Gas Token</span><span class="iv b">USDC</span></div>
+      <div class="ir"><span class="il">USDC Contract</span><span class="iv" style="font-size:.58rem;">0x1c7D...7238</span></div>
+    </div>
+    <div class="notice gold">Send only USDC on Arc Testnet to this address. Other assets may be lost.</div>
+  </div>
+
+  <!-- SWAP -->
+  <div class="page" id="page-swap">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Swap</span>
+      <span class="pt-sub badge sim">Simulated</span>
+    </div>
+    <div class="notice gold">Simulated swap — no on-chain DEX on Arc Testnet yet. Balances update locally.</div>
+
+    <div class="fg">
+      <label class="fl">From</label>
+      <div style="display:flex;gap:6px;">
+        <div class="fi-row" style="flex:1;">
+          <input type="number" id="sw-in-amt" placeholder="0.00" oninput="calcSwap()" min="0" step="any">
+          <span class="fi-max" onclick="swapSetMax()">MAX</span>
+        </div>
+        <select class="fsel" id="sw-from" onchange="calcSwap()" style="width:110px;">
+          <option value="USDC">USDC</option>
+          <option value="USDT">USDT</option>
+          <option value="EURO">EURO</option>
+          <option value="AUSD">AUSD</option>
+          <option value="DAI">DAI</option>
+          <option value="ADA">ADA</option>
+          <option value="POL">POL</option>
+          <option value="ETH">ETH</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sw-div">↕</div>
+
+    <div class="fg">
+      <label class="fl">To</label>
+      <div style="display:flex;gap:6px;">
+        <div class="fi-row" style="flex:1;opacity:.7;pointer-events:none;">
+          <input type="number" id="sw-out-amt" placeholder="0.00" readonly>
+        </div>
+        <select class="fsel" id="sw-to" onchange="calcSwap()" style="width:110px;">
+          <option value="ETH">ETH</option>
+          <option value="USDC">USDC</option>
+          <option value="USDT">USDT</option>
+          <option value="EURO">EURO</option>
+          <option value="AUSD">AUSD</option>
+          <option value="DAI">DAI</option>
+          <option value="ADA">ADA</option>
+          <option value="POL">POL</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="ibox">
+      <div class="ir"><span class="il">Rate</span><span class="iv" id="sw-rate">—</span></div>
+      <div class="ir"><span class="il">Direction</span><span class="iv" id="sw-dir">—</span></div>
+      <div class="ir"><span class="il">Fee</span><span class="iv" id="sw-fee">—</span></div>
+      <div class="ir"><span class="il">Price Source</span><span class="iv" id="sw-src">Fixed rate</span></div>
+    </div>
+
+    <button class="btn" onclick="doSwap()" id="swapBtn">Swap</button>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="page" id="page-bridge">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Bridge</span>
+      <span class="pt-sub badge sim">Simulated</span>
+    </div>
+    <div class="notice gold">Simulated bridge — CCTP not yet live on Arc Testnet. UI demo only.</div>
+
+    <div class="fg">
+      <label class="fl">From Network</label>
+      <select class="fsel" id="br-from">
+        <option value="eth-sep">Ethereum Sepolia</option>
+        <option value="base-sep">Base Sepolia</option>
+      </select>
+    </div>
+    <div class="sw-div" style="margin:4px 0;">↓</div>
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:11px;">
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 11px;font-size:.82rem;color:var(--txt3);">Arc Testnet</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(59,126,246,.2);border-radius:3px;padding:2px 6px;">Destination</div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Token</label>
+      <select class="fsel" id="br-token"><option>USDC</option><option>ETH</option><option>USDT</option></select>
+    </div>
+    <div class="fg">
+      <label class="fl">Amount</label>
+      <div class="fi-row">
+        <input type="number" id="br-amt" placeholder="0.00" min="0" step="any">
+        <span class="fi-tag" id="br-t-tag">USDC</span>
+      </div>
+    </div>
+
+    <div class="ibox">
+      <div class="ir"><span class="il">Protocol</span><span class="iv">Circle CCTP (simulated)</span></div>
+      <div class="ir"><span class="il">Est. Time</span><span class="iv">1–2 sec</span></div>
+      <div class="ir"><span class="il">Fee</span><span class="iv">~0.001 USDC</span></div>
+    </div>
+
+    <button class="btn" onclick="doBridge()" id="bridgeBtn">Bridge to Arc Testnet</button>
+
+    <div class="card mt12">
+      <div class="cb">
+        <div class="sec-t">Testnet Faucets</div>
+        <div class="ir"><span class="il" style="font-size:.72rem;">Sepolia ETH</span><a href="https://sepoliafaucet.com" target="_blank" style="font-size:.68rem;color:var(--blue);text-decoration:none;">sepoliafaucet.com ↗</a></div>
+        <div class="ir"><span class="il" style="font-size:.72rem;">Base Sepolia</span><a href="https://faucet.quicknode.com/base/sepolia" target="_blank" style="font-size:.68rem;color:var(--blue);text-decoration:none;">quicknode ↗</a></div>
+        <div class="ir"><span class="il" style="font-size:.72rem;">Test USDC</span><a href="https://faucet.circle.com" target="_blank" style="font-size:.68rem;color:var(--green);text-decoration:none;">faucet.circle.com ↗</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY CHECK -->
+  <div class="page" id="page-checkin">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Daily Check-in</span>
+    </div>
+
+    <div style="text-align:center;padding:14px 0 16px;">
+      <div class="sec-t">Streak</div>
+      <div style="font-size:2.6rem;font-weight:700;color:var(--txt);letter-spacing:-.04em;line-height:1;" id="ci-streak">0</div>
+      <div style="font-size:.66rem;color:var(--txt3);">days</div>
+    </div>
+
+    <div class="sk-row" id="ci-dots">
+      <div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div>
+      <div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div><div class="sk-d"></div>
+    </div>
+
+    <div class="card mt8">
+      <div class="cb">
+        <div class="ir"><span class="il">Total Points</span><span class="iv gold" id="ci-pts">0</span></div>
+        <div class="ir"><span class="il">Today's Reward</span><span class="iv" id="ci-today-pts">+5 pts</span></div>
+        <div class="ir"><span class="il">Streak Bonus</span><span class="iv gold" id="ci-bonus">—</span></div>
+        <div class="ir"><span class="il">Next Milestone</span><span class="iv" id="ci-next-ms">7-day streak</span></div>
+        <div class="ir"><span class="il">Status</span><span class="iv g" id="ci-status">Ready</span></div>
+      </div>
+    </div>
+
+    <div class="ibox">
+      <div style="font-size:.6rem;font-weight:600;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Reward Schedule</div>
+      <div class="ir"><span class="il">Day 1–7</span><span class="iv">5 pts/day</span></div>
+      <div class="ir"><span class="il">7-day Bonus</span><span class="iv gold">+50 pts · +2 extra/day</span></div>
+      <div class="ir"><span class="il">Day 7–14</span><span class="iv">5+2 = 7 pts/day</span></div>
+      <div class="ir"><span class="il">14-day Bonus</span><span class="iv gold">+100 pts · +3 extra/day</span></div>
+      <div class="ir"><span class="il">Day 14–30</span><span class="iv">5+3 = 8 pts/day</span></div>
+      <div class="ir"><span class="il">30-day Bonus</span><span class="iv gold">+200 pts · +5 extra/day</span></div>
+    </div>
+
+    <button class="btn mt8" id="ci-btn" onclick="doCheckin()">Claim Daily Reward</button>
+    <div style="text-align:center;margin-top:7px;font-size:.62rem;color:var(--txt3);" id="ci-msg"></div>
+  </div>
+
+  <!-- DEPLOY -->
+  <div class="page" id="page-deploy">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Deploy Contract</span>
+      <span class="pt-sub badge sim">Fun</span>
+    </div>
+    <div class="notice blue">Generates a random simulated contract deployment on Arc Testnet. For fun / demo only.</div>
+
+    <div class="fg">
+      <label class="fl">Contract Name</label>
+      <input class="fi" id="dep-name" placeholder="MyToken" value="MyToken">
+    </div>
+    <div class="fg">
+      <label class="fl">Contract Type</label>
+      <select class="fsel" id="dep-type">
+        <option>ERC20 Token</option>
+        <option>ERC721 NFT</option>
+        <option>Multisig Wallet</option>
+        <option>Staking Pool</option>
+        <option>DEX Pool</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Symbol (optional)</label>
+      <input class="fi" id="dep-sym" placeholder="MTK">
+    </div>
+
+    <div class="card mb12">
+      <div class="cb" id="dep-result" style="display:none;">
+        <div class="sec-t">Deployment Result</div>
+        <div class="ir"><span class="il">Contract</span><span class="iv" id="dr-name">—</span></div>
+        <div class="ir"><span class="il">Address</span><span class="iv" style="font-size:.58rem;" id="dr-addr">—</span></div>
+        <div class="ir"><span class="il">Tx Hash</span><span class="iv" style="font-size:.58rem;" id="dr-hash">—</span></div>
+        <div class="ir"><span class="il">Block</span><span class="iv" id="dr-block">—</span></div>
+        <div class="ir"><span class="il">Status</span><span class="iv g">Confirmed</span></div>
+        <a href="#" id="dr-exp-link" target="_blank" style="display:block;margin-top:8px;font-size:.68rem;color:var(--blue);text-decoration:none;">View on Explorer ↗</a>
+      </div>
+    </div>
+
+    <button class="btn" onclick="doDeploy()" id="deployBtn">Deploy Contract</button>
+  </div>
+
+  <!-- POINTS -->
+  <div class="page" id="page-points">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">Points</span>
+    </div>
+    <div class="pts-big"><div class="pts-num" id="pts-total">0</div><div class="pts-lbl">Total Points</div></div>
+    <div class="sec-t mb8">Your Breakdown</div>
+    <div class="card mb12"><div class="cb" id="pts-bd"><div class="empty">No points yet</div></div></div>
+    <div class="sec-t mb8">How to Earn</div>
+    <div class="card"><div class="cb">
+      <div class="pi"><span class="pi-name">Daily Check-in (base)</span><span class="pi-val">5 pts</span></div>
+      <div class="pi"><span class="pi-name">7-Day Streak Bonus</span><span class="pi-val">+50 pts</span></div>
+      <div class="pi"><span class="pi-name">14-Day Streak Bonus</span><span class="pi-val">+100 pts</span></div>
+      <div class="pi"><span class="pi-name">30-Day Streak Bonus</span><span class="pi-val">+200 pts</span></div>
+      <div class="pi"><span class="pi-name">Send USDC</span><span class="pi-val">+5 pts</span></div>
+      <div class="pi"><span class="pi-name">Swap (per swap)</span><span class="pi-val">+3 pts</span></div>
+      <div class="pi"><span class="pi-name">Bridge</span><span class="pi-val">+5 pts</span></div>
+      <div class="pi"><span class="pi-name">Deploy Contract</span><span class="pi-val">+10 pts</span></div>
+    </div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <div class="phdr">
+      <button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <span class="pt">History</span>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <button class="btn out sm" onclick="clearHist()">Clear</button>
+    </div>
+    <div class="card"><div class="cb" id="hist-list"><div class="empty">No transactions yet</div></div></div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- OVERLAY + DRAWER -->
+<div class="ov" id="ov" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dr-hd">
+    <span class="dr-t">Menu</span>
+    <button class="dr-close" onclick="closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="dr-body">
+    <div class="dr-lbl">Main</div>
+    <button class="dr-item active" id="di-home" onclick="dNav('home')"><div class="dr-dot"></div>Dashboard</button>
+    <div class="dr-sep"></div>
+    <div class="dr-lbl">Actions</div>
+    <button class="dr-item" id="di-send" onclick="dNav('send')"><div class="dr-dot"></div>Send USDC</button>
+    <button class="dr-item" id="di-swap" onclick="dNav('swap')"><div class="dr-dot"></div>Swap</button>
+    <button class="dr-item" id="di-bridge" onclick="dNav('bridge')"><div class="dr-dot"></div>Bridge</button>
+    <button class="dr-item" id="di-deploy" onclick="dNav('deploy')"><div class="dr-dot"></div>Deploy Contract</button>
+    <div class="dr-sep"></div>
+    <div class="dr-lbl">Earn</div>
+    <button class="dr-item" id="di-checkin" onclick="dNav('checkin')"><div class="dr-dot"></div>Daily Check-in</button>
+    <button class="dr-item" id="di-points" onclick="dNav('points')"><div class="dr-dot"></div>Points</button>
+    <div class="dr-sep"></div>
+    <div class="dr-lbl">More</div>
+    <button class="dr-item" id="di-history" onclick="dNav('history')"><div class="dr-dot"></div>History</button>
+    <button class="dr-item" onclick="openExt('https://faucet.circle.com/')"><div class="dr-dot"></div>Get Test USDC<span class="dr-ext">↗</span></button>
+    <button class="dr-item" onclick="openExt('https://testnet.arcscan.app/')"><div class="dr-dot"></div>Arc Explorer<span class="dr-ext">↗</span></button>
+  </div>
+</div>
+
+<!-- WALLET MODAL -->
+<div class="modal-wrap" id="wModal">
+  <div class="modal-bg" onclick="closeWM()"></div>
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title">Connect Wallet</div>
+    <div class="m-sub">Select your wallet to connect to Arc Testnet (Chain 1322)</div>
+    <div id="w-list"></div>
+    <div style="margin-top:12px;text-align:center;font-size:.66rem;color:var(--txt3);line-height:1.6;">
+      No wallet? Install <a href="https://metamask.io" target="_blank" style="color:var(--blue);">MetaMask</a> or <a href="https://rabby.io" target="_blank" style="color:var(--blue);">Rabby</a>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════
+const ARC_CHAIN = {
+  chainId: '0x52A',
+  chainName: 'Arc Testnet',
+  nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 6 },
+  rpcUrls: ['https://rpc.arc.testnet.network'],
+  blockExplorerUrls: ['https://testnet.arcscan.app']
+};
+
+const USDC_CONTRACT = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
+const EXPLORER = 'https://testnet.arcscan.app';
+
+// Swap rates: USDC → token (forward)
+const SWAP_RATES = {
+  'USDC→USDT': 1,
+  'USDC→EURO': 1,
+  'USDC→AUSD': 4,
+  'USDC→DAI':  7,
+  'USDC→ADA':  3,
+  'USDC→POL':  17,
+};
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let W = { connected: false, address: '', type: '' };
+let usdcBalance = null; // null = not loaded
+let ethPrice = null;
+let simBalances = {}; // { USDT: 0, EURO: 0, ... }
+
+// Persistent (localStorage)
+const LS_KEY = 'arcfi_v4';
+function loadLS() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+}
+function saveLS() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(LS)); } catch {}
+}
+let LS = {
+  txs: [], points: 0, streak: 0, lastCheckin: null,
+  pts_bd: {}, simBal: {},
+  ...loadLS()
+};
+simBalances = LS.simBal || {};
+
+// ═══════════════════════════════════════
+//  WALLETS
+// ═══════════════════════════════════════
+const WALLETS = [
+  { id: 'metamask',  name: 'MetaMask',         abbr: 'MM', detect: () => !!(window.ethereum?.isMetaMask && !window.ethereum?.isRabby) },
+  { id: 'rabby',     name: 'Rabby',             abbr: 'RB', detect: () => !!(window.ethereum?.isRabby) },
+  { id: 'zerion',    name: 'Zerion',            abbr: 'ZR', detect: () => !!(window.ethereum?.isZerion || window.zerionWallet) },
+  { id: 'coinbase',  name: 'Coinbase Wallet',   abbr: 'CB', detect: () => !!(window.ethereum?.isCoinbaseWallet) },
+];
+
+function buildWalletList() {
+  const el = document.getElementById('w-list');
+  el.innerHTML = WALLETS.map(w => {
+    const det = w.detect();
+    const isCon = W.connected && W.type === w.id;
+    return `<div class="w-item ${isCon ? 'connected' : ''}" onclick="connectWallet('${w.id}')">
+      <div class="w-logo" style="${det ? 'color:var(--green);border-color:rgba(29,185,102,.25);' : ''}">${w.abbr}</div>
+      <div style="flex:1;">
+        <div class="w-name">${w.name}</div>
+        <div class="w-st">${isCon ? 'Connected · ' + shortAddr(W.address) : det ? 'Detected' : 'Not installed'}</div>
+      </div>
+      <span class="w-tag ${isCon ? 'on' : det ? 'ok' : ''}">${isCon ? 'Active' : det ? 'Ready' : 'Install'}</span>
+    </div>`;
+  }).join('');
+}
+
+function openWM() { buildWalletList(); document.getElementById('wModal').classList.add('open'); }
+function closeWM() { document.getElementById('wModal').classList.remove('open'); }
+
+async function connectWallet(id) {
+  const w = WALLETS.find(x => x.id === id);
+  if (!w) return;
+  if (!w.detect()) {
+    const urls = { metamask: 'https://metamask.io', rabby: 'https://rabby.io', zerion: 'https://zerion.io', coinbase: 'https://www.coinbase.com/wallet' };
+    toast('Not installed — opening install page', 'w');
+    setTimeout(() => window.open(urls[id], '_blank'), 900);
+    return;
+  }
+  closeWM();
+  await doConnect(id);
+}
+
+async function doConnect(wid) {
+  if (!window.ethereum) { toast('No wallet found', 'e'); return; }
+  try {
+    toast('Requesting connection…', 'i');
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+    // Add / switch to Arc Testnet
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN.chainId }] });
+    } catch (sw) {
+      if (sw.code === 4902) {
+        try { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [ARC_CHAIN] }); }
+        catch { toast('Please add Arc Testnet manually', 'w'); }
+      } else if (sw.code === 4001) { toast('Network switch denied', 'e'); }
+    }
+
+    W = { connected: true, address: accounts[0], type: wid };
+    onConnected();
+    await loadBalance();
+
+    window.ethereum.on('accountsChanged', a => {
+      if (!a.length) disconnect();
+      else { W.address = a[0]; onConnected(); loadBalance(); }
+    });
+    window.ethereum.on('chainChanged', () => loadBalance());
+
+  } catch (e) {
+    if (e.code === 4001) toast('Connection rejected', 'e');
+    else toast('Connection failed: ' + (e.message || '').slice(0, 60), 'e');
+  }
+}
+
+function onConnected() {
+  const btn = document.getElementById('wBtn');
+  btn.classList.add('on');
+  document.getElementById('wDot').classList.add('live');
+  document.getElementById('wTxt').textContent = shortAddr(W.address);
+
+  document.getElementById('home-dis').style.display = 'none';
+  document.getElementById('home-con').style.display = 'block';
+  document.getElementById('hAddrTxt').textContent = shortAddr(W.address);
+  document.getElementById('rcv-addr').textContent = W.address;
+
+  buildWalletList();
+  refreshUI();
+  toast('Connected · ' + shortAddr(W.address), 's');
+}
+
+function disconnect() {
+  W = { connected: false, address: '', type: '' };
+  usdcBalance = null;
+  document.getElementById('wBtn').classList.remove('on');
+  document.getElementById('wDot').classList.remove('live');
+  document.getElementById('wTxt').textContent = 'Connect';
+  document.getElementById('home-dis').style.display = 'block';
+  document.getElementById('home-con').style.display = 'none';
+  nav('home');
+}
+
+// ═══════════════════════════════════════
+//  LOAD REAL BALANCE
+// ═══════════════════════════════════════
+async function loadBalance() {
+  if (!W.connected || !window.ethereum) return;
+  document.getElementById('port-loading').innerHTML = '<span class="loading"></span>Loading balance…';
+  document.getElementById('hBal').textContent = '…';
+
+  try {
+    // USDC balance (ERC20 balanceOf)
+    const data = '0x70a08231' + W.address.slice(2).padStart(64, '0');
+    const res = await window.ethereum.request({
+      method: 'eth_call',
+      params: [{ to: USDC_CONTRACT, data }, 'latest']
+    });
+    if (res && res !== '0x' && res !== '0x0') {
+      usdcBalance = Number(BigInt(res)) / 1e6;
+    } else {
+      usdcBalance = 0;
+    }
+  } catch (e) {
+    usdcBalance = 0;
+    toast('Could not fetch balance — check network', 'w');
+  }
+
+  refreshUI();
+}
+
+// ═══════════════════════════════════════
+//  FETCH ETH PRICE (CoinGecko)
+// ═══════════════════════════════════════
+async function fetchEthPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const d = await r.json();
+    ethPrice = d.ethereum?.usd || null;
+  } catch { ethPrice = null; }
+}
+
+// ═══════════════════════════════════════
+//  SEND USDC (REAL)
+// ═══════════════════════════════════════
+function updateSendPreview() {
+  const amt = parseFloat(document.getElementById('snd-amt').value) || 0;
+  const to  = document.getElementById('snd-to').value.trim();
+  const box = document.getElementById('snd-preview');
+  if (amt > 0) {
+    box.style.display = 'block';
+    document.getElementById('sp-amt').textContent = amt.toFixed(6) + ' USDC';
+    document.getElementById('sp-to').textContent  = to ? (to.length > 20 ? to.slice(0,10)+'…'+to.slice(-8) : to) : '—';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function setSendMax() {
+  if (usdcBalance === null) return;
+  document.getElementById('snd-amt').value = Math.max(0, usdcBalance - 0.001).toFixed(6);
+  updateSendPreview();
+}
+
+async function doSend() {
+  if (!W.connected) { toast('Connect wallet first', 'e'); return; }
+  const to  = document.getElementById('snd-to').value.trim();
+  const amt = parseFloat(document.getElementById('snd-amt').value) || 0;
+
+  if (!to.startsWith('0x') || to.length !== 42) { toast('Invalid address', 'e'); return; }
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+  if (usdcBalance !== null && amt > usdcBalance) { toast('Insufficient USDC balance', 'e'); return; }
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span>Waiting for wallet…';
+
+  try {
+    const amtWei = BigInt(Math.round(amt * 1e6)).toString(16).padStart(64, '0');
+    const toHex  = to.slice(2).padStart(64, '0');
+    const data   = '0xa9059cbb' + toHex + amtWei;
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: W.address, to: USDC_CONTRACT, data, gas: '0x186A0' }]
+    });
+
+    if (usdcBalance !== null) usdcBalance = Math.max(0, usdcBalance - amt);
+    addTx('Send', 'To ' + shortAddr(to), -amt, 'USDC', txHash);
+    addPts('send', 5);
+    document.getElementById('snd-to').value  = '';
+    document.getElementById('snd-amt').value = '';
+    document.getElementById('snd-preview').style.display = 'none';
+    refreshUI();
+    toast('Sent ' + amt.toFixed(2) + ' USDC ✓', 's');
+
+  } catch (e) {
+    if (e.code === 4001) toast('Transaction rejected', 'e');
+    else toast('Send failed: ' + (e.message || '').slice(0, 60), 'e');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirm Send';
+  }
+}
+
+// ═══════════════════════════════════════
+//  SWAP (SIMULATED)
+// ═══════════════════════════════════════
+async function calcSwap() {
+  const fromSym = document.getElementById('sw-from').value;
+  const toSym   = document.getElementById('sw-to').value;
+  const amt     = parseFloat(document.getElementById('sw-in-amt').value) || 0;
+
+  if (fromSym === toSym) {
+    document.getElementById('sw-out-amt').value = '';
+    document.getElementById('sw-rate').textContent = '—';
+    return;
+  }
+
+  let rate = null, isReverse = false, fee = 0, src = 'Fixed rate';
+
+  // ETH swap: use live price
+  if (fromSym === 'USDC' && toSym === 'ETH') {
+    if (!ethPrice) await fetchEthPrice();
+    rate = ethPrice ? (1 / ethPrice) : null;
+    src = ethPrice ? 'CoinGecko live' : 'Price unavailable';
+  } else if (fromSym === 'ETH' && toSym === 'USDC') {
+    if (!ethPrice) await fetchEthPrice();
+    rate = ethPrice || null;
+    src = ethPrice ? 'CoinGecko live' : 'Price unavailable';
+  } else {
+    const fwdKey = `USDC→${toSym}`;
+    const revKey = `USDC→${fromSym}`;
+    if (fromSym === 'USDC' && SWAP_RATES[fwdKey]) {
+      rate = SWAP_RATES[fwdKey];
+    } else if (toSym === 'USDC' && SWAP_RATES[revKey]) {
+      // Reverse — apply 3–5% penalty
+      isReverse = true;
+      const penalty = 0.03 + Math.random() * 0.02;
+      rate = 1 / SWAP_RATES[revKey] * (1 - penalty);
+      fee = penalty * 100;
+    } else if (SWAP_RATES[`USDC→${fromSym}`] && SWAP_RATES[`USDC→${toSym}`]) {
+      // Cross: both through USDC
+      const usdcAmt = amt / SWAP_RATES[`USDC→${fromSym}`];
+      const penalty = 0.03 + Math.random() * 0.02;
+      rate = SWAP_RATES[`USDC→${toSym}`] * (1 - penalty);
+      fee = penalty * 100;
+      isReverse = true;
+      src = 'Fixed rate (cross-swap)';
+    }
+  }
+
+  if (rate === null) {
+    document.getElementById('sw-out-amt').value = '';
+    document.getElementById('sw-rate').textContent = 'Price unavailable';
+    return;
+  }
+
+  const out = amt * rate;
+  document.getElementById('sw-out-amt').value = out > 0 ? out.toFixed(6) : '';
+  document.getElementById('sw-rate').textContent = `1 ${fromSym} = ${rate.toFixed(rate < 0.0001 ? 8 : 4)} ${toSym}`;
+  document.getElementById('sw-dir').textContent = isReverse ? 'Reverse / Cross (penalty applied)' : 'Forward';
+  document.getElementById('sw-fee').textContent = isReverse ? fee.toFixed(2) + '% penalty' : 'None';
+  document.getElementById('sw-src').textContent = src;
+}
+
+function swapSetMax() {
+  const fromSym = document.getElementById('sw-from').value;
+  const bal = fromSym === 'USDC' ? (usdcBalance || 0) : (simBalances[fromSym] || 0);
+  document.getElementById('sw-in-amt').value = bal.toFixed(6);
+  calcSwap();
+}
+
+async function doSwap() {
+  if (!W.connected) { toast('Connect wallet first', 'e'); return; }
+  const fromSym = document.getElementById('sw-from').value;
+  const toSym   = document.getElementById('sw-to').value;
+  const amt     = parseFloat(document.getElementById('sw-in-amt').value) || 0;
+  if (fromSym === toSym) { toast('Select different tokens', 'e'); return; }
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+
+  // Check balance
+  const fromBal = fromSym === 'USDC' ? (usdcBalance || 0) : (simBalances[fromSym] || 0);
+  if (amt > fromBal) { toast('Insufficient ' + fromSym + ' balance', 'e'); return; }
+
+  const outAmt = parseFloat(document.getElementById('sw-out-amt').value) || 0;
+  if (outAmt <= 0) { toast('Could not calculate output', 'e'); return; }
+
+  const btn = document.getElementById('swapBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span>Processing…';
+
+  await new Promise(r => setTimeout(r, 800)); // simulate delay
+
+  // Update simulated balances
+  if (fromSym === 'USDC') { usdcBalance = Math.max(0, (usdcBalance || 0) - amt); }
+  else { simBalances[fromSym] = Math.max(0, (simBalances[fromSym] || 0) - amt); }
+
+  if (toSym === 'USDC') { usdcBalance = (usdcBalance || 0) + outAmt; }
+  else { simBalances[toSym] = (simBalances[toSym] || 0) + outAmt; }
+
+  LS.simBal = simBalances; saveLS();
+
+  const fakeHash = randHex(66);
+  addTx('Swap', `${amt.toFixed(4)} ${fromSym} → ${outAmt.toFixed(4)} ${toSym}`, -amt, fromSym, fakeHash, true);
+  addPts('swap', 3);
+
+  document.getElementById('sw-in-amt').value  = '';
+  document.getElementById('sw-out-amt').value = '';
+  refreshUI();
+  toast(`Swapped ${amt.toFixed(4)} ${fromSym} → ${outAmt.toFixed(4)} ${toSym}`, 's');
+
+  btn.disabled = false; btn.textContent = 'Swap';
+}
+
+// ═══════════════════════════════════════
+//  BRIDGE (SIMULATED)
+// ═══════════════════════════════════════
+async function doBridge() {
+  if (!W.connected) { toast('Connect wallet first', 'e'); return; }
+  const amt = parseFloat(document.getElementById('br-amt').value) || 0;
+  const from = document.getElementById('br-from').value;
+  const token = document.getElementById('br-token').value;
+  if (amt <= 0) { toast('Enter amount', 'e'); return; }
+
+  const btn = document.getElementById('bridgeBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span>Bridging…';
+
+  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+
+  if (token === 'USDC') usdcBalance = (usdcBalance || 0) + amt;
+  else { simBalances[token] = (simBalances[token] || 0) + amt; }
+  LS.simBal = simBalances; saveLS();
+
+  const fromLabel = { 'eth-sep': 'Ethereum Sepolia', 'base-sep': 'Base Sepolia' }[from] || from;
+  const fakeHash = randHex(66);
+  addTx('Bridge', `${fromLabel} → Arc · ${amt} ${token}`, +amt, token, fakeHash, true);
+  addPts('bridge', 5);
+  document.getElementById('br-amt').value = '';
+  refreshUI();
+  toast(`Bridge complete — ${amt} ${token} arrived on Arc ✓`, 's');
+
+  btn.disabled = false; btn.textContent = 'Bridge to Arc Testnet';
+}
+
+// ═══════════════════════════════════════
+//  DAILY CHECK-IN
+// ═══════════════════════════════════════
+function doCheckin() {
+  if (!W.connected) { toast('Connect wallet first', 'e'); return; }
+  const today = new Date().toDateString();
+  if (LS.lastCheckin === today) { toast('Already claimed today', 'w'); return; }
+
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  if (LS.lastCheckin === yesterday.toDateString()) LS.streak = (LS.streak || 0) + 1;
+  else LS.streak = 1;
+  LS.lastCheckin = today;
+
+  const s = LS.streak;
+  // Base pts
+  let base = 5;
+  // Extra per day based on milestones reached
+  let extra = 0;
+  if (s > 14) extra = 5;       // 30d tier (actually 14+ gives 3, 30+ gives 5 — track milestone)
+  else if (s > 7) extra = 3;   // 14d tier
+  else if (s > 0 && LS._m7) extra = 2; // after 7d bonus given
+
+  let pts = base + extra;
+
+  // Milestone bonuses
+  let bonus = 0;
+  if (s === 7)  { bonus = 50;  LS._m7 = true; }
+  if (s === 14) { bonus = 100; LS._m14 = true; }
+  if (s === 30) { bonus = 200; LS._m30 = true; }
+
+  addPts('checkin', pts + bonus);
+  addTx('Check-in', `Day ${s} streak${bonus ? ' · +' + bonus + ' bonus' : ''}`, pts + bonus, 'pts');
+  saveLS();
+  refreshUI();
+  toast(`Day ${s} · +${pts}${bonus ? ' +' + bonus + ' bonus' : ''} pts ✓`, 's');
+}
+
+// ═══════════════════════════════════════
+//  DEPLOY (SIMULATED)
+// ═══════════════════════════════════════
+async function doDeploy() {
+  if (!W.connected) { toast('Connect wallet first', 'e'); return; }
+  const name  = document.getElementById('dep-name').value || 'MyToken';
+  const type  = document.getElementById('dep-type').value;
+  const sym   = document.getElementById('dep-sym').value || 'MTK';
+
+  const btn = document.getElementById('deployBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span>Deploying…';
+
+  await new Promise(r => setTimeout(r, 1500));
+
+  const hash    = randHex(66);
+  const addr    = '0x' + randHex(40).slice(2);
+  const block   = Math.floor(Math.random() * 900000 + 100000);
+  const expLink = `${EXPLORER}/tx/${hash}`;
+
+  document.getElementById('dep-result').style.display  = 'block';
+  document.getElementById('dr-name').textContent  = `${name} (${type})`;
+  document.getElementById('dr-addr').textContent  = addr;
+  document.getElementById('dr-hash').textContent  = shortAddr(hash, 10);
+  document.getElementById('dr-block').textContent = block;
+  document.getElementById('dr-exp-link').href     = expLink;
+
+  addTx('Deploy', `${name} · ${type} · ${sym}`, 0, '', hash, true);
+  addPts('deploy', 10);
+  saveLS();
+  refreshUI();
+  toast(`${name} deployed! Contract: ${shortAddr(addr)}`, 's');
+
+  btn.disabled = false; btn.textContent = 'Deploy Contract';
+}
+
+// ═══════════════════════════════════════
+//  POINTS
+// ═══════════════════════════════════════
+function addPts(cat, n) {
+  LS.points = (LS.points || 0) + n;
+  LS.pts_bd = LS.pts_bd || {};
+  LS.pts_bd[cat] = (LS.pts_bd[cat] || 0) + n;
+  saveLS();
+  renderPts();
+}
+
+function renderPts() {
+  const tot = +(LS.points || 0);
+  document.getElementById('pts-total').textContent = tot.toFixed(1);
+  document.getElementById('ci-pts').textContent    = tot.toFixed(1);
+
+  const lbls = { checkin: 'Daily Check-in', swap: 'Swap', bridge: 'Bridge', deploy: 'Deploy', send: 'Send' };
+  let html = '';
+  Object.entries(LS.pts_bd || {}).forEach(([k, v]) => {
+    if (v > 0) html += `<div class="pi"><span class="pi-name">${lbls[k] || k}</span><span class="pi-val">${(+v).toFixed(1)} pts</span></div>`;
+  });
+  document.getElementById('pts-bd').innerHTML = html || '<div class="empty">No points yet</div>';
+}
+
+// ═══════════════════════════════════════
+//  TX HISTORY
+// ═══════════════════════════════════════
+function addTx(type, detail, amt, token, hash = null, sim = false) {
+  LS.txs = LS.txs || [];
+  LS.txs.unshift({
+    type, detail, amt, token, hash, sim,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    date: new Date().toLocaleDateString()
+  });
+  if (LS.txs.length > 200) LS.txs = LS.txs.slice(0, 200);
+  saveLS();
+  renderHistory();
+}
+
+function clearHist() {
+  if (!confirm('Clear all history?')) return;
+  LS.txs = []; saveLS(); renderHistory();
+}
+
+const TX_ICONS = {
+  'Send':     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
+  'Swap':     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>`,
+  'Bridge':   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`,
+  'Deploy':   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+  'Check-in': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+};
+
+function makeTxHTML(tx) {
+  const neg = tx.amt < 0;
+  const amtStr = tx.amt === 0 ? '—' : (neg ? '' : '+') + Math.abs(tx.amt).toFixed(4) + ' ' + (tx.token || '');
+  const expLink = tx.hash ? ` · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" style="color:var(--blue);text-decoration:none;">View${tx.sim ? ' (sim)' : ''} ↗</a>` : '';
+  const simBadge = tx.sim ? ' <span style="font-size:.52rem;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(232,162,25,.15);border-radius:2px;padding:1px 4px;">SIM</span>' : '';
+  return `<div class="tx-item">
+    <div class="tx-ico">${TX_ICONS[tx.type] || ''}</div>
+    <div style="flex:1;min-width:0;">
+      <div class="tx-type">${tx.type}${simBadge}</div>
+      <div class="tx-detail">${tx.detail}${expLink}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div class="tx-amt ${neg ? 'neg' : 'pos'}">${amtStr}</div>
+      <div class="tx-time">${tx.time}</div>
+    </div>
+  </div>`;
+}
+
+function renderHistory() {
+  const txs = LS.txs || [];
+  const full   = document.getElementById('hist-list');
+  const recent = document.getElementById('home-recent');
+  if (!txs.length) {
+    const e = '<div class="empty">No transactions yet</div>';
+    full.innerHTML = e; recent.innerHTML = e; return;
+  }
+  full.innerHTML   = txs.map(makeTxHTML).join('');
+  recent.innerHTML = txs.slice(0, 3).map(makeTxHTML).join('');
+}
+
+// ═══════════════════════════════════════
+//  PORTFOLIO RENDER
+// ═══════════════════════════════════════
+function renderPortfolio() {
+  const el = document.getElementById('portfolio-list');
+  if (usdcBalance === null) {
+    el.innerHTML = '<div class="empty" id="port-loading"><span class="loading"></span>Loading balance…</div>';
+    return;
+  }
+
+  let html = `<div class="asset">
+    <div class="a-logo" style="color:var(--usdc);">USDC</div>
+    <div style="flex:1;">
+      <div class="a-name">USDC</div>
+      <div class="a-chain">Arc Testnet · Gas Token</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="a-bal">${usdcBalance.toFixed(6)}</div>
+      <div class="a-usd">≈ $${usdcBalance.toFixed(2)}</div>
+    </div>
+  </div>`;
+
+  // Sim balances
+  Object.entries(simBalances).forEach(([sym, bal]) => {
+    if (bal <= 0) return;
+    html += `<div class="asset">
+      <div class="a-logo" style="color:var(--txt2);">${sym.slice(0,4)}</div>
+      <div style="flex:1;">
+        <div class="a-name">${sym}</div>
+        <div class="a-chain">Simulated · ArcFi</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="a-bal">${bal.toFixed(4)}</div>
+        <div class="a-usd" style="color:var(--gold);font-size:.56rem;">simulated</div>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+//  CHECK-IN UI UPDATE
+// ═══════════════════════════════════════
+function updateCheckinUI() {
+  const s = LS.streak || 0;
+  const today = new Date().toDateString();
+  const done  = LS.lastCheckin === today;
+
+  document.getElementById('ci-streak').textContent = s;
+  document.getElementById('ci-status').textContent = done ? 'Claimed' : 'Ready';
+  document.getElementById('ci-status').style.color = done ? 'var(--txt3)' : 'var(--green)';
+  document.getElementById('ci-msg').textContent = done ? 'Next reward available tomorrow' : '';
+
+  // Today pts calculation
+  let base = 5, extra = 0;
+  if (s >= 14) extra = 5;
+  else if (s >= 7) extra = 3;
+  else if (LS._m7) extra = 2;
+  document.getElementById('ci-today-pts').textContent = '+' + (base + extra) + ' pts';
+
+  // Bonus
+  const nextMilestone = s < 7 ? `${7-s} days to 7-day bonus (+50)` : s < 14 ? `${14-s} days to 14-day bonus (+100)` : s < 30 ? `${30-s} days to 30-day bonus (+200)` : '30-day milestone achieved!';
+  document.getElementById('ci-next-ms').textContent = nextMilestone;
+  document.getElementById('ci-bonus').textContent = s >= 30 ? '+5 extra/day' : s >= 14 ? '+3 extra/day' : s >= 7 ? '+2 extra/day' : '—';
+
+  const btn = document.getElementById('ci-btn');
+  btn.disabled = done || !W.connected;
+  btn.textContent = done ? 'Claimed Today' : 'Claim Daily Reward';
+
+  // Streak dots (7-day view)
+  document.querySelectorAll('.sk-d').forEach((d, i) => {
+    d.classList.remove('done', 'active');
+    const pos = s % 7;
+    if (pos === 0 && s > 0) { d.classList.add('done'); }
+    else if (i < pos - (done ? 0 : 1)) d.classList.add('done');
+    else if (done && i === pos - 1) d.classList.add('done');
+    else if (!done && i === pos) d.classList.add('active');
+  });
+}
+
+// ═══════════════════════════════════════
+//  MAIN UI REFRESH
+// ═══════════════════════════════════════
+function refreshUI() {
+  if (usdcBalance !== null) {
+    document.getElementById('hBal').textContent = usdcBalance.toFixed(6);
+  }
+  renderPortfolio();
+  renderPts();
+  renderHistory();
+  updateCheckinUI();
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+function nav(id) {
+  if (!W.connected && !['home'].includes(id)) { toast('Connect wallet first', 'e'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('scrollArea').scrollTop = 0;
+}
+
+function dNav(id) {
+  closeDrawer();
+  setTimeout(() => nav(id), 160);
+  document.querySelectorAll('.dr-item').forEach(el => el.classList.remove('active'));
+  const t = document.getElementById('di-' + id); if (t) t.classList.add('active');
+}
+
+function openDrawer()  { document.getElementById('drawer').classList.add('open'); document.getElementById('ov').classList.add('open'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('ov').classList.remove('open'); }
+function openExt(url)  { closeDrawer(); window.open(url, '_blank'); }
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function shortAddr(a, n = 6) {
+  if (!a || a.length < 10) return a;
+  return a.slice(0, n) + '…' + a.slice(-4);
+}
+
+function randHex(len) {
+  return '0x' + Array.from({ length: len - 2 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+}
+
+function copyAddr() {
+  if (!W.address) return;
+  navigator.clipboard.writeText(W.address)
+    .then(() => toast('Address copied', 's'))
+    .catch(() => toast('Copy failed', 'e'));
+}
+
+let toastTimer;
+function toast(msg, type = 'i') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// Bridge token tag sync
+document.getElementById('br-token').addEventListener('change', () => {
+  document.getElementById('br-t-tag').textContent = document.getElementById('br-token').value;
+});
+
+// Swap from/to sync to avoid same token
+document.getElementById('sw-from').addEventListener('change', () => {
+  const f = document.getElementById('sw-from').value;
+  const t = document.getElementById('sw-to');
+  if (f === t.value) { t.value = f === 'USDC' ? 'ETH' : 'USDC'; }
+  calcSwap();
+});
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+refreshUI();
+fetchEthPrice();
+setInterval(fetchEthPrice, 90000);
+</script>
+</body>
+</html>
